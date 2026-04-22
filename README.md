@@ -1,2 +1,17 @@
-# sistema-gestao-drt
-Sistema de gestão para assistência técnica com controle de OS, orçamento e vendas
+# 🚀 Sistema de Gestão DRT
+
+Sistema desenvolvido para organização de assistência técnica.
+
+## 🔧 Funcionalidades
+- Controle de Ordens de Serviço
+- Orçamentos
+- Vendas avulsas
+- Gestão de clientes
+
+## 💻 Tecnologias
+- Next.js
+- Prisma
+- APIs
+
+## 📈 Objetivo
+Organizar processos e aumentar a produtividade no atendimento técnico.
