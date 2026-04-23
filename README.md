@@ -15,3 +15,7 @@ Sistema desenvolvido para organização de assistência técnica.
 
 ## 📈 Objetivo
 Organizar processos e aumentar a produtividade no atendimento técnico.
+
+## 📸 Preview do Sistema
+
+Em breve imagens do sistema em funcionamento.
