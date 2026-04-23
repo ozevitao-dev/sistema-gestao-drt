@@ -1,0 +1,258 @@
+Quero evoluir meu sistema atual de Ordem de Serviço para assistência técnica de notebooks e computadores, mantendo a base já existente em Next.js 14, TypeScript, Prisma, PostgreSQL, NextAuth, Tailwind CSS e exportação PDF/PNG.
+
+IMPORTANTE:
+Não recrie o sistema do zero. Trabalhe em cima da estrutura atual existente, preservando:
+- autenticação com admin e técnico
+- cadastro de clientes
+- orçamentos
+- ordens de serviço
+- dashboard
+- relatórios
+- exportação PDF
+- exportação PNG
+- configurações da empresa
+- fluxo de aprovação de orçamento para virar OS
+
+OBJETIVO DA EVOLUÇÃO:
+Quero unir o sistema atual com um modelo de ordem de serviço mais visual, claro, direto e profissional, semelhante a fichas técnicas de assistência, mas adaptado para notebooks e informática.
+O sistema precisa continuar simples, rápido, intuitivo e fácil de usar no balcão.
+
+PRIORIDADE MÁXIMA:
+O cabeçalho da ordem de serviço deve ser 100% editável nas configurações do sistema.
+
+CRIAR NA ÁREA DE CONFIGURAÇÕES UM BLOCO CHAMADO:
+“Cabeçalho da OS”
+
+Esse bloco deve permitir editar:
+- logo da empresa
+- nome da empresa
+- subtítulo da empresa ou slogan
+- endereço completo
+- bairro, cidade e estado
+- CEP
+- telefone principal
+- WhatsApp
+- e-mail
+- CNPJ
+- texto complementar abaixo do cabeçalho
+- exibir ou ocultar cada campo individualmente
+- posição da logo
+- alinhamento do cabeçalho
+- cor principal do cabeçalho
+- se o número da OS aparece no topo à direita
+- prefixo do número da OS (ex: OS, O.S., Nº, DRT-OS)
+
+REQUISITO IMPORTANTE:
+O número da OS deve continuar sendo gerado automaticamente e único, porém sua exibição visual no cabeçalho precisa ser configurável.
+
+ESTRUTURA NOVA DA ORDEM DE SERVIÇO:
+A OS deve ficar mais objetiva e organizada visualmente, contendo:
+
+1. CABEÇALHO
+- logo
+- nome da empresa
+- dados configuráveis da empresa
+- número da OS em destaque
+- data de entrada
+- data prevista
+- data de retirada
+- status da OS
+
+2. DADOS DO CLIENTE
+- nome
+- telefone
+- WhatsApp
+- CPF/CNPJ opcional
+- e-mail opcional
+
+REGRAS:
+- nome obrigatório
+- telefone ou WhatsApp obrigatório
+- CPF/CNPJ opcional e nunca obrigatório para abrir OS ou orçamento
+
+3. DADOS DO EQUIPAMENTO
+- tipo do equipamento
+- marca
+- modelo
+- número de série
+- carregador: sim ou não
+- senha do equipamento: opcional
+- acessórios deixados
+- estado geral do equipamento na entrada
+
+4. PROBLEMA RELATADO
+Campo objetivo para o que o cliente informou.
+
+5. DIAGNÓSTICO TÉCNICO
+Campo técnico detalhado para avaliação da assistência.
+
+6. CHECKLIST TÉCNICO
+Adicionar checklist específico para notebook/computador:
+- liga
+- dá vídeo
+- teclado
+- touchpad
+- tela
+- bateria
+- webcam
+- áudio
+- Wi-Fi
+- Bluetooth
+- portas USB
+- carregamento
+- dobradiças
+- carcaça
+- cooler
+- SSD/HD
+- memória RAM
+- outros
+
+Cada item deve permitir:
+- funcionando
+- com defeito
+- não testado
+
+7. AVARIAS VISUAIS
+Adicionar um bloco visual simples para marcar avarias no equipamento:
+- tampa
+- base
+- tela
+- cantos
+- laterais
+- teclado
+- carcaça
+- dobradiças
+
+Pode ser feito com seletores simples e observação complementar.
+Não precisa algo complexo, mas deve ser funcional e rápido.
+
+8. ORÇAMENTO
+Manter o sistema atual de orçamento, mas melhorar:
+- cliente salvo automaticamente no banco
+- orçamento com número automático
+- descrição do serviço
+- peças
+- mão de obra
+- valor total
+- forma de pagamento
+- parcelamento
+- valor à vista no Pix
+- observações
+- status: pendente, aprovado, recusado
+
+9. APROVAÇÃO DO ORÇAMENTO
+Manter o fluxo atual:
+- ao aprovar orçamento, converter automaticamente em OS
+- vincular orçamento e OS
+- reaproveitar dados já preenchidos
+- evitar retrabalho
+
+10. SERVIÇO EXECUTADO
+Campo próprio para registrar o que foi feito no equipamento.
+
+11. GARANTIA E TERMOS
+Adicionar no rodapé da OS, com edição nas configurações:
+- prazo de garantia em dias
+- texto padrão de garantia
+- texto padrão de responsabilidade sobre backup
+- texto sobre equipamentos não retirados
+- texto sobre perda de garantia em caso de mau uso, queda, umidade ou violação por terceiros
+
+Adicionar opção nas configurações para editar completamente esses textos.
+
+MODELO SUGERIDO DOS TERMOS:
+- O cliente declara estar ciente das condições do equipamento no ato da entrada.
+- É de responsabilidade do cliente realizar backup prévio de seus dados.
+- A assistência técnica não se responsabiliza por eventual perda de dados.
+- A garantia cobre apenas o serviço executado e/ou peça substituída, não abrangendo mau uso, quedas, oxidação, umidade, violação por terceiros ou danos externos.
+- Equipamentos não retirados no prazo informado poderão ser armazenados, descartados ou destinados conforme política da empresa e legislação aplicável.
+
+12. ASSINATURAS
+Adicionar campos para:
+- assinatura do cliente
+- assinatura do técnico
+- nome do responsável pelo atendimento
+
+13. EXPORTAÇÕES
+Manter e melhorar:
+- PDF em meia folha A4 com 2 vias por página
+- PNG com logo aparecendo corretamente
+- layout limpo para impressão
+- visual profissional e minimalista
+- excelente legibilidade em preto e branco
+
+14. CONFIGURAÇÕES EXPANDIDAS
+Na página de configurações, criar abas:
+- Dados da Empresa
+- Cabeçalho da OS
+- Rodapé / Termos
+- Aparência
+- Exportação
+
+15. BANCO DE DADOS
+Expandir a tabela de configuração para armazenar:
+- endereco
+- bairro
+- cidade
+- estado
+- cep
+- cnpj
+- telefone
+- whatsapp
+- email
+- subtituloEmpresa
+- textoCabecalho
+- exibirEndereco
+- exibirTelefone
+- exibirWhatsapp
+- exibirEmail
+- exibirCnpj
+- exibirNumeroOSNoTopo
+- prefixoNumeroOS
+- garantiaDias
+- textoGarantia
+- textoBackup
+- textoNaoRetirada
+- textoPerdaGarantia
+
+16. EXPERIÊNCIA DE USO
+O foco deve ser:
+- rapidez no balcão
+- poucos cliques
+- clareza visual
+- aparência profissional
+- fácil preenchimento
+- layout intuitivo no desktop e no celular
+
+17. REGRAS IMPORTANTES
+- Não exigir CPF
+- Não poluir a interface
+- Não deixar o formulário confuso
+- Manter compatibilidade com a estrutura atual
+- Aproveitar as rotas, models e exportações já existentes
+- Refatorar apenas o necessário
+- Preservar o fluxo atual que já funciona
+
+18. MELHORIAS EXTRAS DESEJADAS
+- botão duplicar OS
+- botão imprimir
+- botão gerar PNG
+- botão gerar PDF
+- busca por cliente, telefone, número da OS, marca e modelo
+- preenchimento automático de cliente ao digitar telefone
+- campo de observações internas
+
+19. RESULTADO ESPERADO
+Entregue as alterações completas no sistema atual, incluindo:
+- atualização do schema Prisma
+- rotas API necessárias
+- interface atualizada
+- tela de configurações expandida
+- novo layout de Ordem de Serviço
+- exportação PDF e PNG usando o novo cabeçalho configurável
+- manutenção de compatibilidade com o sistema atual
+
+IMPORTANTE:
+Faça tudo de forma organizada, limpa, responsiva e profissional.
+Priorize simplicidade, clareza e velocidade de operação.
+O sistema é para assistência técnica de notebooks e informática, então o layout deve refletir isso.

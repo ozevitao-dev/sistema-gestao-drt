@@ -1,0 +1,285 @@
+generator client {
+    provider = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+    output = "/home/ubuntu/sistema_os_assistencia/nextjs_space/node_modules/.prisma/client"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          String    @default("tecnico")
+  ativo         Boolean   @default(true)
+  accounts      Account[]
+  sessions      Session[]
+  ordensServico OrdemServico[] @relation("TecnicoOS")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Cliente {
+  id        String   @id @default(cuid())
+  nome      String
+  telefone  String?
+  whatsapp  String?
+  email     String?
+  cpfCnpj   String?  @unique
+  endereco  String?
+  cidade    String?
+  estado    String?
+  cep       String?
+  bairro    String?
+  ordensServico OrdemServico[]
+  orcamentos    Orcamento[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Configuracao {
+  id                  String   @id @default("config_unica")
+  nomeEmpresa         String?
+  subtituloEmpresa    String?
+  logoUrl             String?
+  logoCloudPath       String?
+  endereco            String?
+  bairro              String?
+  cidade              String?
+  estado              String?
+  cep                 String?
+  cnpj                String?
+  telefone            String?
+  whatsapp            String?
+  email               String?
+  textoCabecalho      String?  @db.Text
+  // Visibilidade dos campos no cabeçalho
+  exibirEndereco      Boolean  @default(true)
+  exibirTelefone      Boolean  @default(true)
+  exibirWhatsapp      Boolean  @default(true)
+  exibirEmail         Boolean  @default(true)
+  exibirCnpj          Boolean  @default(true)
+  exibirNumeroOSNoTopo Boolean @default(true)
+  prefixoNumeroOS     String   @default("OS")
+  posicaoLogo         String   @default("esquerda") // esquerda, centro, direita
+  alinhamentoCabecalho String  @default("esquerda") // esquerda, centro, direita
+  corCabecalho        String   @default("#6c63ff")
+  // Termos e garantia
+  garantiaDias        Int      @default(90)
+  textoGarantia       String?  @db.Text
+  textoBackup         String?  @db.Text
+  textoNaoRetirada    String?  @db.Text
+  textoPerdaGarantia  String?  @db.Text
+  // Aparência
+  tema                String   @default("escuro")
+  observacaoOS        String?  @db.Text
+  prefixoNumeroOrcamento String @default("ORC")
+  // Personalização do PDF
+  usarMarcaDagua      Boolean  @default(false)
+  tamanhoLogo         String   @default("medio") // pequeno, medio, grande
+  updatedAt           DateTime @updatedAt
+}
+
+model Orcamento {
+  id              String   @id @default(cuid())
+  numero          Int      @unique @default(autoincrement())
+  nomeCliente     String
+  telefoneCliente String
+  clienteId       String?
+  cliente         Cliente? @relation(fields: [clienteId], references: [id])
+  // Equipamento
+  tipoEquipamento String?
+  marca           String?
+  modelo          String?
+  numeroSerie     String?
+  // Serviços e peças
+  descricao       String   @db.Text
+  servicos        String?  @db.Text  // JSON: [{nome, valor}]
+  pecas           String?  @db.Text
+  valorPecas      Float    @default(0)
+  valorMaoDeObra  Float    @default(0)
+  valorTotal      Float    @default(0)
+  formaPagamento  String?
+  parcelamento    String?
+  valorPixVista   Float?
+  status          String   @default("pendente") // pendente, aprovado, recusado
+  observacoes     String?  @db.Text
+  entradaEquipamento String? @db.Text // JSON: {tipoEquipamento, descricaoEntrada, checklist:{liga, daVideo, tecladoResponde, sinaisOxidacao, marcasUso}}
+  modoEntrada     Boolean  @default(false) // true = entrada sem valor, false = orçamento completo
+  ordemServicoId  String?  @unique
+  ordemServico    OrdemServico? @relation(fields: [ordemServicoId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Marca {
+  id       String   @id @default(cuid())
+  nome     String   @unique
+  modelos  Modelo[]
+  createdAt DateTime @default(now())
+}
+
+model Modelo {
+  id      String @id @default(cuid())
+  nome    String
+  marcaId String
+  marca   Marca  @relation(fields: [marcaId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  @@unique([nome, marcaId])
+}
+
+model ServicoPadrao {
+  id    String  @id @default(cuid())
+  nome  String  @unique
+  valor Float   @default(0)
+  ativo Boolean @default(true)
+  createdAt DateTime @default(now())
+}
+
+model OrdemServico {
+  id                String   @id @default(cuid())
+  numero            Int      @unique @default(autoincrement())
+  clienteId         String
+  cliente           Cliente  @relation(fields: [clienteId], references: [id])
+  tecnicoId         String?
+  tecnico           User?    @relation("TecnicoOS", fields: [tecnicoId], references: [id])
+  // Equipamento
+  tipoEquipamento   String   @default("notebook")
+  marca             String?
+  modelo            String?
+  numeroSerie       String?
+  carregador        Boolean  @default(false)
+  senhaEquipamento  String?
+  acessorios        String?  @db.Text
+  estadoGeral       String?  @db.Text
+  // Problema / Diagnóstico / Serviço
+  descricaoProblema String   @db.Text
+  diagnostico       String?  @db.Text
+  servicoExecutado  String?  @db.Text
+  // Checklist técnico (JSON: { "liga": "funcionando"|"com_defeito"|"nao_testado", ... })
+  checklist         String?  @db.Text
+  // Avarias visuais (JSON: { "tampa": "ok"|"avariado", "obs": "..." })
+  avarias           String?  @db.Text
+  // Status e datas
+  status            String   @default("aberta")
+  dataEntrada       DateTime @default(now())
+  dataPrevista      DateTime?
+  dataRetirada      DateTime?
+  prazoEstimado     DateTime?
+  // Financeiro
+  valorTotal        Float    @default(0)
+  formaPagamento    String?
+  dataPagamento     DateTime?
+  // Observações
+  observacoes       String?  @db.Text
+  observacoesInternas String? @db.Text
+  responsavelAtendimento String?
+  orcamento         Orcamento?
+  lancamentos       Lancamento[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Lancamento {
+  id              String   @id @default(cuid())
+  tipo            String   // entrada, saida
+  categoria       String?  // servico, peca, aluguel, luz, internet, pro_labore, etc.
+  descricao       String
+  valor           Float
+  data            DateTime @default(now())
+  formaPagamento  String?  // dinheiro, pix, cartao_debito, cartao_credito, transferencia, boleto
+  statusPagamento String   @default("pago") // pago, parcial, pendente
+  valorPago       Float?   @default(0)
+  observacoes     String?  @db.Text
+  ordemServicoId  String?
+  ordemServico    OrdemServico? @relation(fields: [ordemServicoId], references: [id], onDelete: SetNull)
+  socioId         String?  // for pro-labore entries
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model CaixaSemanal {
+  id              String   @id @default(cuid())
+  valorInicial    Float
+  dataAbertura    DateTime @default(now())
+  ativo           Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ProLaboreConfig {
+  id              String   @id @default(cuid())
+  nomeSocio       String   @unique
+  valorFixo       Float    @default(0)
+  percentualLucro Float    @default(0) // percentage of profit
+  ativo           Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model AtendimentoRemoto {
+  id          String   @id @default(cuid())
+  cliente     String
+  descricao   String   @db.Text
+  data        DateTime
+  tempo       Float    // em minutos
+  valorHora   Float
+  valorTotal  Float
+  status      String   @default("pendente") // pendente, concluido, cancelado
+  observacoes String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AgendaItem {
+  id          String   @id @default(cuid())
+  titulo      String
+  descricao   String?  @db.Text
+  cliente     String?
+  data        DateTime
+  horario     String?  // "09:00", "14:30" etc
+  status      String   @default("pendente") // pendente, confirmado, concluido, cancelado
+  cor         String?  @default("#2563eb")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

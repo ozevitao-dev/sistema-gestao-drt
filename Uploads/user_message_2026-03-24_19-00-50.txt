@@ -1,0 +1,439 @@
+Quero que você MELHORE e REFATORE meu código atual do sistema de assistência técnica, trabalhando em cima da base existente, sem recriar o projeto do zero.
+
+OBJETIVO:
+Corrigir bugs, simplificar o fluxo, melhorar a estrutura do código, deixar o sistema mais rápido, limpo, confiável e profissional para uso no balcão, focado somente em NOTEBOOK e DESKTOP.
+
+IMPORTANTE:
+- Não recriar o sistema do zero
+- Aproveitar a arquitetura atual
+- Refatorar somente o necessário
+- Corrigir o que está quebrado
+- Melhorar backend, frontend, banco e experiência de uso
+- Entregar código mais organizado, estável e manutenível
+
+PRIORIDADE MÁXIMA:
+No cadastro do equipamento, a lista de MARCAS e MODELOS não está carregando corretamente.
+Quero que isso seja corrigido de forma definitiva, revisando toda a cadeia do sistema.
+
+CORREÇÕES E MELHORIAS QUE DEVEM SER FEITAS NO CÓDIGO:
+
+1. CORRIGIR CADASTRO DE EQUIPAMENTO
+Revisar e corrigir toda a lógica para que:
+- a lista de marcas seja carregada corretamente
+- a lista de modelos seja carregada corretamente
+- ao selecionar uma marca, os modelos relacionados apareçam automaticamente
+- funcione tanto no ORÇAMENTO quanto na ORDEM DE SERVIÇO
+- funcione na criação e também na edição
+- tenha fallback para digitação manual do modelo caso ele não exista
+- não quebre por erro de estado, cache, query, relacionamento ou seed
+
+REVISAR NO CÓDIGO:
+- schema Prisma
+- models/tabelas do banco
+- relacionamento marca -> modelo
+- migrations
+- seeds
+- rotas API
+- queries
+- validações
+- formulários
+- selects/combobox/autocomplete
+- carregamento assíncrono
+- persistência dos dados
+- edição de registros existentes
+
+2. FOCAR O SISTEMA APENAS EM NOTEBOOK E DESKTOP
+Remover ou ignorar categorias fora do meu nicho.
+No tipo de equipamento, deixar apenas:
+- Notebook
+- Desktop
+
+Não incluir:
+- impressora
+- monitor
+- all in one
+- mini pc
+- outros segmentos
+
+3. CRIAR OU CORRIGIR ESTRUTURA DE MARCAS E MODELOS
+Criar ou corrigir as tabelas/entidades de marcas e modelos com relacionamento correto.
+
+Marcas iniciais:
+- Dell
+- Acer
+- Samsung
+- HP
+- Lenovo
+- Asus
+- Positivo
+- Vaio
+- Apple
+- Avell
+- LG
+- Toshiba
+- Sony
+- Compaq
+- Gigabyte
+- MSI
+- Multilaser
+- Philco
+- Gateway
+- Alienware
+- Huawei
+- Xiaomi
+- Microsoft
+- Razer
+- Outros
+
+Modelos iniciais por marca, com seed populada automaticamente, por exemplo:
+
+DELL
+- Inspiron
+- Vostro
+- Latitude
+- G15
+- G3
+- G5
+- XPS
+- Alienware
+
+ACER
+- Aspire 3
+- Aspire 5
+- Nitro 5
+- Predator
+- Extensa
+
+SAMSUNG
+- Book
+- Book E
+- Book X
+- Expert
+- Odyssey
+- Essentials
+
+LENOVO
+- IdeaPad 1
+- IdeaPad 3
+- IdeaPad 3i
+- IdeaPad Gaming 3i
+- ThinkPad
+- ThinkCentre
+- Legion
+- V14
+- V15
+
+ASUS
+- VivoBook
+- ZenBook
+- TUF Gaming
+- ROG
+- X515
+- X515EA
+- M515
+- E510
+
+HP
+- Pavilion
+- EliteBook
+- ProBook
+- 240 G7
+- 250 G8
+- 256 G8
+- Envy
+- Omen
+
+POSITIVO
+- Motion
+- Master
+- Duo
+- Stilo
+
+APPLE
+- MacBook Air
+- MacBook Pro
+
+VAIO
+- FE14
+- FE15
+
+LG
+- Gram
+
+MSI
+- Modern
+- GF63
+- Katana
+- Bravo
+
+AVELL
+- A series
+- B series
+- Storm
+
+PHILCO
+- 14L
+- 14M
+- 14P
+
+MULTILASER
+- Legacy
+- Ultra
+
+COMPAQ
+- Presario
+
+GIGABYTE
+- G5
+- Aorus
+
+MICROSOFT
+- Surface Laptop
+- Surface Book
+
+RAZER
+- Blade
+
+HUAWEI
+- MateBook
+
+XIAOMI
+- RedmiBook
+- Mi Notebook
+
+REGRAS:
+- seed precisa popular automaticamente o banco
+- marca deve ser pesquisável
+- modelo deve ser pesquisável
+- modelo deve filtrar pela marca
+- permitir cadastro manual se não existir
+- permitir expansão futura
+
+4. SIMPLIFICAR O ORÇAMENTO
+Quero um ORÇAMENTO rápido de criar, bonito e profissional.
+Remover excesso de informação.
+Não usar checklist técnico nem avarias.
+
+O orçamento deve conter:
+- Cabeçalho da empresa
+- Número do orçamento
+- Data
+- Dados do cliente
+- Dados do equipamento
+- Problema relatado
+- Diagnóstico técnico
+- Serviços
+- Peças
+- Valor total
+- Valor à vista
+- Valor no Pix
+- Valor parcelado
+- Quantidade de parcelas
+- Valor por parcela
+- Forma de pagamento
+- Observações
+
+AÇÃO OBRIGATÓRIA NO ORÇAMENTO:
+Ao criar o orçamento, quero botões visíveis para:
+- Exportar em PDF
+- Aprovar
+- Cancelar
+
+STATUS DO ORÇAMENTO:
+- Pendente
+- Aprovado
+- Cancelado
+
+REGRAS:
+- ao aprovar, converter automaticamente em ORDEM DE SERVIÇO
+- ao cancelar, manter salvo no histórico com status cancelado
+- não gerar OS quando cancelado
+
+5. SIMPLIFICAR A ORDEM DE SERVIÇO
+A OS deve ser objetiva, limpa e rápida de preencher.
+
+Remover:
+- checklist técnico
+- avarias visuais
+- excesso de campos
+
+A OS deve conter:
+- Cabeçalho da empresa
+- Número da OS
+- Data de entrada
+- Data prevista
+- Data de retirada
+- Status
+- Dados do cliente
+- Dados do equipamento
+- Problema relatado
+- Diagnóstico técnico
+- Serviço executado
+- Valor total
+- Valor à vista
+- Valor no Pix
+- Valor parcelado
+- Quantidade de parcelas
+- Valor por parcela
+- Forma de pagamento
+- Observações
+- Termos e garantia
+- Assinatura do cliente
+- Assinatura do técnico/responsável
+
+6. SERVIÇOS PADRÃO PRÉ-CADASTRADOS
+Criar estrutura para serviços padrão com valor editável.
+
+Serviços iniciais:
+- Troca de tela
+- Troca de teclado
+- Troca de bateria
+- Troca de dobradiça
+- Troca de carcaça
+- Upgrade de SSD
+- Upgrade de RAM
+- Limpeza interna
+- Troca de pasta térmica
+- Formatação
+- Instalação de sistema operacional
+- Instalação de drivers
+- Backup de dados
+- Reparo de placa
+- Troca de conector DC Jack
+- Reinstalação de sistema
+- Remoção de vírus
+- Recuperação de sistema
+- Configuração de notebook
+- Configuração de desktop
+- Higienização completa
+- Revisão técnica
+- Diagnóstico técnico
+
+REGRAS:
+- permitir múltiplos serviços
+- permitir editar descrição
+- permitir editar valor
+- permitir cadastrar novos serviços nas configurações
+- permitir selecionar rapidamente ao abrir orçamento e OS
+
+7. DESTACAR FORMAS DE PAGAMENTO
+No orçamento e na OS, destacar visualmente:
+- Valor total
+- Valor à vista
+- Valor no Pix
+- Valor parcelado
+- Quantidade de parcelas
+- Valor da parcela
+- Forma de pagamento
+
+Essas informações precisam ficar claras para aprovação rápida do cliente.
+
+8. CORRIGIR EXPORTAÇÃO E IMPRESSÃO
+Corrigir o layout e o código de exportação para:
+- PDF em A4 corretamente dimensionado
+- PNG proporcional
+- sem cortes
+- sem escala errada
+- layout centralizado
+- boa margem
+- visual profissional
+- logo aparecendo corretamente
+
+O tamanho atual está errado e precisa ser corrigido no código.
+
+9. CABEÇALHO TOTALMENTE EDITÁVEL
+Manter e melhorar as configurações para cabeçalho editável, com:
+- Logo
+- Nome da empresa
+- Texto adicional
+- Endereço
+- CNPJ
+- Telefone
+- WhatsApp
+- E-mail
+- Prefixo da OS
+- Prefixo do orçamento
+
+Texto adicional editável, por exemplo:
+“Assistência técnica especializada em notebooks e computadores”
+“Diagnóstico, manutenção, upgrades e reparos com transparência e segurança”
+
+10. CADASTRO DE CLIENTE RÁPIDO
+No cliente:
+- Nome obrigatório
+- Telefone ou WhatsApp obrigatório
+- CPF/CNPJ opcional
+- E-mail opcional
+- Endereço opcional
+
+Não exigir CPF para criar orçamento ou OS.
+
+11. CONTROLE DE ACESSO
+Quero deixar somente dois usuários ativos no sistema:
+
+- Usuário: VITORDRT
+  Senha: Felicidade@00
+
+- Usuário: DIEGODRT
+  Senha: Felicidade@00
+
+REGRAS:
+- ambos administradores
+- bloquear, desativar ou remover outros usuários
+- somente esses dois podem acessar
+
+12. TERMOS E GARANTIA
+Manter termos curtos, claros e profissionais, editáveis nas configurações.
+
+Exemplos:
+- O cliente declara estar ciente das condições do equipamento no ato da entrada.
+- É de responsabilidade do cliente realizar backup prévio de seus dados.
+- A assistência técnica não se responsabiliza por eventual perda de dados.
+- A garantia cobre apenas o serviço executado e/ou peça substituída.
+- A garantia não cobre mau uso, quedas, umidade, oxidação, violação por terceiros ou danos externos.
+
+13. MELHORAR A QUALIDADE DO CÓDIGO
+Quero que você refatore o código para deixá-lo:
+- mais limpo
+- mais organizado
+- mais legível
+- mais manutenível
+- mais desacoplado
+- mais confiável
+
+APLIQUE BOAS PRÁTICAS:
+- separar responsabilidades
+- melhorar organização de componentes
+- melhorar organização de rotas e services
+- evitar duplicação de lógica
+- melhorar validações
+- melhorar tratamento de erros
+- melhorar tipagem TypeScript
+- melhorar nomes de funções, variáveis e entidades
+- manter consistência visual e estrutural
+
+14. RESULTADO ESPERADO
+Entregar meu sistema atualizado com:
+- correção definitiva da lista de marcas e modelos
+- seed de marcas e modelos funcionando
+- filtro de modelos por marca funcionando
+- orçamento simplificado
+- botões Exportar PDF, Aprovar e Cancelar no orçamento
+- status Pendente, Aprovado e Cancelado
+- aprovação convertendo orçamento em OS
+- cancelamento mantendo histórico
+- OS simplificada
+- serviços padrão funcionando
+- pagamento em destaque
+- exportação A4 correta
+- PNG correta
+- cabeçalho editável
+- somente dois usuários ativos
+- código mais limpo, estável e profissional
+
+IMPORTANTE FINAL:
+Não recrie o projeto do zero.
+Melhore o código existente.
+Corrija os bugs atuais.
+Refatore com inteligência.
+Quero um sistema bonito, rápido, funcional, comercial e profissional para assistência de notebook e desktop.

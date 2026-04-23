@@ -1,0 +1,2396 @@
+################################################################################
+#                                                                              #
+#            DOCUMENTAÇÃO TÉCNICA COMPLETA DO SISTEMA                          #
+#            DRT INFORMÁTICA — SISTEMA DE ORDENS DE SERVIÇO                    #
+#                                                                              #
+#            Gerado em: 25/03/2026                                             #
+#            Versão do documento: 1.0                                          #
+#                                                                              #
+################################################################################
+
+================================================================================
+ÍNDICE GERAL
+================================================================================
+
+  1.  Identificação do Projeto
+  2.  Stack Tecnológica Completa
+  3.  Arquitetura Geral do Sistema
+  4.  Estrutura de Diretórios
+  5.  Schema do Banco de Dados (Prisma/PostgreSQL)
+  6.  Autenticação e Autorização
+  7.  Rotas de API — Inventário Completo
+  8.  Páginas e Telas — Inventário Completo
+  9.  Componentes Compartilhados
+ 10.  Regras de Negócio
+ 11.  Fluxos Operacionais Detalhados
+ 12.  Sistema de Exportação (PDF/PNG)
+ 13.  Sistema Financeiro
+ 14.  Sistema de Configurações
+ 15.  Catálogos (Marcas, Modelos, Serviços Padrão)
+ 16.  Notificações por E-mail
+ 17.  Upload de Arquivos (S3/Cloud Storage)
+ 18.  Estilização e Temas
+ 19.  Variáveis de Ambiente
+ 20.  Scripts de Seed e Dados Iniciais
+ 21.  Deployment e Infraestrutura
+ 22.  Guia de Migração e Reconstrução
+
+================================================================================
+SEÇÃO 1 — IDENTIFICAÇÃO DO PROJETO
+================================================================================
+
+Nome do Sistema..........: DRT Informática — Sistema de OS
+Domínio Público..........: https://drtinfo.abacusai.app
+Tipo.....................: Sistema de gestão de assistência técnica (ordens de
+                          serviço, orçamentos, clientes, financeiro)
+Proprietários............: VITORDRT e DIEGODRT (sócios da DRT Informática)
+Idioma da Interface......: Português (Brasil)
+Diretório do Projeto.....: /home/ubuntu/sistema_os_assistencia
+Diretório do Código......: /home/ubuntu/sistema_os_assistencia/nextjs_space
+Framework................: Next.js 14 (App Router)
+Repositório Git..........: Não utiliza — versionamento interno Abacus AI
+
+Descrição Funcional:
+  Sistema completo de gestão para loja de assistência técnica de computadores.
+  Permite gerenciar clientes, criar orçamentos, converter orçamentos em ordens
+  de serviço, acompanhar status das OS, controlar financeiro (entradas,
+  despesas, pró-labore dos sócios), exportar documentos em PDF e PNG,
+  configurar layout da empresa para impressão, e visualizar dashboard com
+  indicadores operacionais.
+
+Usuários do Sistema:
+  - VITORDRT (admin) — sócio 1
+  - DIEGODRT (admin) — sócio 2
+  - john@doe.com (conta de teste oculta — não visível para usuários finais)
+
+================================================================================
+SEÇÃO 2 — STACK TECNOLÓGICA COMPLETA
+================================================================================
+
+FRAMEWORK & RUNTIME:
+  - Next.js 14.2.28 (App Router com diretório app/)
+  - React 18.2.0
+  - TypeScript 5.2.2
+  - Node.js (runtime da plataforma Abacus AI)
+
+ORM & BANCO DE DADOS:
+  - Prisma 6.7.0 (ORM)
+  - @prisma/client 6.7.0
+  - PostgreSQL (hospedado pela Abacus AI, compartilhado dev/prod)
+
+AUTENTICAÇÃO:
+  - next-auth 4.24.11 (Credentials Provider)
+  - @next-auth/prisma-adapter 1.0.7
+  - bcryptjs 2.4.3 (hash de senhas)
+  - jsonwebtoken 9.0.2 (não usado diretamente, dependência do next-auth)
+
+UI & ESTILIZAÇÃO:
+  - Tailwind CSS 3.3.3
+  - tailwindcss-animate 1.0.7
+  - tailwind-merge 2.5.2
+  - class-variance-authority 0.7.0
+  - clsx 2.1.1
+  - Framer Motion 10.18.0 (animações)
+  - Lucide React 0.446.0 (ícones)
+  - next-themes 0.3.0 (NÃO usado ativamente — tema é via data-theme no HTML)
+
+GRÁFICOS:
+  - Recharts 2.15.3 (gráficos do dashboard e relatórios)
+
+FORMULÁRIOS:
+  - react-hook-form 7.53.0 (instalado, mas formulários usam useState direto)
+  - zod 3.23.8 (instalado, validação mínima)
+
+CLOUD STORAGE:
+  - @aws-sdk/client-s3 (upload de logo via presigned URL)
+  - @aws-sdk/s3-request-presigner
+
+GERAÇÃO DE PDF:
+  - API HTML-to-PDF da Abacus AI (playwright remoto)
+  - Endpoint: process.env.HTML2PDF_API_URL
+
+NOTIFICAÇÕES:
+  - API de notificação da Abacus AI
+  - Endpoint: process.env.NOTIFICATION_API_URL
+
+UTILITÁRIOS:
+  - date-fns 3.6.0 (manipulação de datas)
+  - sonner 1.5.0 (toasts — instalado mas não usado, usa alertas nativos)
+  - react-hot-toast 2.4.1 (instalado, não utilizado ativamente)
+
+GERENCIADOR DE PACOTES:
+  - yarn (exclusivo — npm e npx não são usados)
+
+================================================================================
+SEÇÃO 3 — ARQUITETURA GERAL DO SISTEMA
+================================================================================
+
+PADRÃO ARQUITETURAL:
+  Monolito full-stack com Next.js App Router.
+  - Frontend: React com Server Components e Client Components ('use client')
+  - Backend: API Routes em app/api/ (Route Handlers do Next.js 14)
+  - Banco de Dados: PostgreSQL via Prisma ORM
+  - Autenticação: NextAuth.js com adapter Prisma
+  - Storage: AWS S3 via presigned URLs (logo da empresa)
+  - PDF: API externa (Abacus AI HTML-to-PDF)
+  - E-mail: API externa (Abacus AI Notifications)
+
+FLUXO DE REQUISIÇÃO:
+  1. Browser → Next.js Server (SSR ou Client-side fetch)
+  2. Client Component → fetch('/api/...') → Route Handler
+  3. Route Handler → getServerSession(authOptions) para autenticação
+  4. Route Handler → prisma.modelo.operacao() para dados
+  5. Resposta JSON → Client Component renderiza
+
+CAMADAS DO SISTEMA:
+  ┌─────────────────────────────────────────────────────────┐
+  │  BROWSER (Client Components com 'use client')           │
+  │  - Páginas React com useState/useEffect                 │
+  │  - fetch() para API routes                              │
+  │  - html2canvas para exportação PNG client-side           │
+  ├─────────────────────────────────────────────────────────┤
+  │  NEXT.JS SERVER (API Route Handlers)                    │
+  │  - Autenticação via getServerSession                    │
+  │  - Validação de dados                                   │
+  │  - Lógica de negócio                                    │
+  │  - Prisma queries                                       │
+  ├─────────────────────────────────────────────────────────┤
+  │  PRISMA ORM                                             │
+  │  - Schema em prisma/schema.prisma                       │
+  │  - Singleton em lib/prisma.ts                           │
+  │  - Connection pooling: limit=5, pool_timeout=10         │
+  ├─────────────────────────────────────────────────────────┤
+  │  POSTGRESQL (Abacus AI hosted)                          │
+  │  - Schema: sistema_os_assistencia_dev                   │
+  │  - Compartilhado entre dev e prod                       │
+  ├─────────────────────────────────────────────────────────┤
+  │  SERVIÇOS EXTERNOS                                      │
+  │  - AWS S3 (upload de logo)                              │
+  │  - Abacus AI HTML-to-PDF API (exportação PDF)           │
+  │  - Abacus AI Notification API (e-mails)                 │
+  └─────────────────────────────────────────────────────────┘
+
+================================================================================
+SEÇÃO 4 — ESTRUTURA DE DIRETÓRIOS
+================================================================================
+
+nextjs_space/
+├── app/
+│   ├── (dashboard)/                    # Route group com layout autenticado
+│   │   ├── layout.tsx                  # Layout com Sidebar
+│   │   ├── dashboard/
+│   │   │   ├── page.tsx                # Dashboard principal
+│   │   │   └── dashboard-chart.tsx     # Componente de gráfico
+│   │   ├── clientes/
+│   │   │   └── page.tsx                # CRUD de clientes
+│   │   ├── orcamentos/
+│   │   │   ├── page.tsx                # Lista de orçamentos
+│   │   │   ├── novo/
+│   │   │   │   └── page.tsx            # Formulário novo orçamento
+│   │   │   └── [id]/
+│   │   │       └── page.tsx            # Detalhe do orçamento
+│   │   ├── ordens/
+│   │   │   ├── page.tsx                # Lista de ordens de serviço
+│   │   │   ├── nova/
+│   │   │   │   └── page.tsx            # Formulário nova OS
+│   │   │   └── [id]/
+│   │   │       └── page.tsx            # Detalhe da OS
+│   │   ├── financeiro/
+│   │   │   └── page.tsx                # Módulo financeiro completo
+│   │   ├── relatorios/
+│   │   │   └── page.tsx                # Relatórios financeiros
+│   │   └── configuracoes/
+│   │       └── page.tsx                # Configurações do sistema
+│   ├── api/
+│   │   ├── auth/
+│   │   │   ├── [...nextauth]/route.ts  # NextAuth handler
+│   │   │   └── login/route.ts          # Login endpoint customizado
+│   │   ├── signup/route.ts             # Cadastro de usuário
+│   │   ├── clientes/
+│   │   │   ├── route.ts                # GET (listar), POST (criar)
+│   │   │   └── [id]/route.ts           # GET, PUT, DELETE individual
+│   │   ├── orcamentos/
+│   │   │   ├── route.ts                # GET (listar), POST (criar)
+│   │   │   └── [id]/
+│   │   │       ├── route.ts            # GET, PUT, POST (aprovar), DELETE
+│   │   │       ├── export/route.ts     # GET → PDF do orçamento
+│   │   │       └── export-png/route.ts # GET → HTML para PNG
+│   │   ├── ordens/
+│   │   │   ├── route.ts                # GET (listar), POST (criar)
+│   │   │   └── [id]/
+│   │   │       ├── route.ts            # GET, PUT (atualizar/status)
+│   │   │       ├── export/route.ts     # GET → PDF da OS
+│   │   │       └── export-png/route.ts # GET → HTML para PNG
+│   │   ├── financeiro/
+│   │   │   ├── route.ts                # GET (listar), POST (criar lançamento)
+│   │   │   ├── [id]/route.ts           # DELETE lançamento
+│   │   │   ├── resumo/route.ts         # GET resumo financeiro
+│   │   │   ├── pro-labore/route.ts     # GET/PUT config pró-labore
+│   │   │   └── caixa/route.ts          # GET/POST caixa semanal
+│   │   ├── dashboard/route.ts          # GET dados do dashboard
+│   │   ├── relatorios/route.ts         # GET dados de relatórios
+│   │   ├── settings/route.ts           # GET/PUT configurações
+│   │   ├── tecnicos/route.ts           # GET lista de técnicos
+│   │   ├── marcas/
+│   │   │   ├── route.ts                # GET (listar), POST (criar)
+│   │   │   └── [id]/route.ts           # PUT, DELETE
+│   │   ├── modelos/
+│   │   │   ├── route.ts                # GET (listar), POST (criar)
+│   │   │   └── [id]/route.ts           # PUT, DELETE
+│   │   ├── servicos-padrao/
+│   │   │   ├── route.ts                # GET (listar), POST (criar)
+│   │   │   └── [id]/route.ts           # PUT, DELETE
+│   │   ├── upload/
+│   │   │   └── presigned/route.ts      # POST → presigned URL para S3
+│   │   └── notificacao/route.ts        # POST → enviar e-mail
+│   ├── login/
+│   │   └── page.tsx                    # Página de login
+│   ├── globals.css                     # Estilos globais + variáveis de tema
+│   ├── layout.tsx                      # Root layout (HTML, body, providers)
+│   ├── page.tsx                        # Redirect "/" → "/dashboard"
+│   └── providers.tsx                   # SessionProvider do NextAuth
+├── components/
+│   ├── sidebar.tsx                     # Sidebar principal (navegação)
+│   ├── modal.tsx                       # Componente modal genérico
+│   ├── status-badge.tsx                # Badge de status para OS
+│   ├── count-up.tsx                    # Animação de contagem numérica
+│   ├── dashboard-shell.tsx             # Shell com header para páginas
+│   └── ui/                             # ~40 componentes shadcn/ui (não usados)
+├── lib/
+│   ├── prisma.ts                       # Singleton do Prisma Client (PRINCIPAL)
+│   ├── db.ts                           # Singleton duplicado (NÃO USADO)
+│   ├── auth.ts                         # Configuração NextAuth (authOptions)
+│   ├── s3.ts                           # Funções S3 (presigned URL, getFileUrl)
+│   ├── aws-config.ts                   # Config do S3 client
+│   ├── os-html-builder.ts             # Builder HTML para PDF/PNG de OS e ORC
+│   ├── export-helpers.ts              # loadExportConfig, generatePdf
+│   ├── utils.ts                        # cn() helper (tailwind-merge)
+│   └── types.ts                        # Tipos genéricos (NÃO USADO pelo sistema)
+├── prisma/
+│   └── schema.prisma                   # Schema do banco de dados
+├── scripts/
+│   ├── seed.ts                         # Script de seed com dados iniciais
+│   └── safe-seed.ts                    # Wrapper que bloqueia delete no seed
+├── public/                             # Arquivos estáticos
+├── .env                                # Variáveis de ambiente
+├── next.config.js                      # Configuração Next.js
+├── tailwind.config.ts                  # Configuração Tailwind CSS
+├── postcss.config.js                   # Configuração PostCSS
+├── tsconfig.json                       # Configuração TypeScript
+├── package.json → symlink              # Dependências (symlink para /opt/...)
+└── yarn.lock → symlink                 # Lockfile (symlink para /opt/...)
+
+================================================================================
+SEÇÃO 5 — SCHEMA DO BANCO DE DADOS (PRISMA/POSTGRESQL)
+================================================================================
+
+Provider: PostgreSQL
+Schema file: prisma/schema.prisma
+Database URL: Configurada via DATABASE_URL no .env
+Connection: connection_limit=5, pool_timeout=10
+
+TOTAL DE MODELOS: 12
+
+----------------------------------------------------------------------
+5.1 — Model User (Tabela: users)
+----------------------------------------------------------------------
+  Propósito: Usuários do sistema (técnicos/administradores)
+
+  Campos:
+    id            String    @id @default(cuid())
+    name          String?
+    email         String    @unique
+    emailVerified DateTime?
+    password      String
+    image         String?
+    role          String    @default("admin")
+    createdAt     DateTime  @default(now())
+    updatedAt     DateTime  @updatedAt
+
+  Relações:
+    accounts      Account[]
+    sessions      Session[]
+    ordens        OrdemServico[]  (técnico responsável)
+
+  Índices: @unique(email)
+  Notas:
+    - Todos os usuários têm role "admin" por padrão
+    - Senha hasheada com bcryptjs (10 rounds)
+    - Campo name é usado como identificador do técnico nas OS
+
+----------------------------------------------------------------------
+5.2 — Model Account (Tabela: accounts)
+----------------------------------------------------------------------
+  Propósito: Contas OAuth (NextAuth Prisma Adapter)
+
+  Campos:
+    id                 String   @id @default(cuid())
+    userId             String
+    type               String
+    provider           String
+    providerAccountId  String
+    refresh_token      String?
+    access_token       String?
+    expires_at         Int?
+    token_type         String?
+    scope              String?
+    id_token           String?
+    session_state      String?
+
+  Relações:
+    user    User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  Índices: @@unique([provider, providerAccountId])
+  Notas: Usado pelo NextAuth Prisma Adapter. Neste sistema, como apenas
+         Credentials Provider é usado, esta tabela fica vazia na prática.
+
+----------------------------------------------------------------------
+5.3 — Model Session (Tabela: sessions)
+----------------------------------------------------------------------
+  Propósito: Sessões de usuário (NextAuth)
+
+  Campos:
+    id           String   @id @default(cuid())
+    sessionToken String   @unique
+    userId       String
+    expires      DateTime
+
+  Relações:
+    user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  Notas: Gerenciado automaticamente pelo NextAuth.
+
+----------------------------------------------------------------------
+5.4 — Model VerificationToken (Tabela: verification_tokens)
+----------------------------------------------------------------------
+  Propósito: Tokens de verificação de email (NextAuth)
+
+  Campos:
+    identifier  String
+    token       String   @unique
+    expires     DateTime
+
+  Índices: @@unique([identifier, token])
+  Notas: Padrão NextAuth. Não utilizado ativamente (sem fluxo de verificação).
+
+----------------------------------------------------------------------
+5.5 — Model Cliente (Tabela: clientes)
+----------------------------------------------------------------------
+  Propósito: Cadastro de clientes da assistência técnica
+
+  Campos:
+    id        String    @id @default(cuid())
+    nome      String
+    telefone  String
+    whatsapp  String?
+    email     String?
+    cpfCnpj   String?
+    endereco  String?
+    bairro    String?
+    cidade    String?
+    estado    String?
+    cep       String?
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+
+  Relações:
+    ordens     OrdemServico[]
+    orcamentos Orcamento[]
+
+  Notas:
+    - Nome e telefone são obrigatórios
+    - CPF/CNPJ não possui validação de formato no backend
+    - Pode ser criado automaticamente via fluxo de OS/Orçamento
+    - Lookup de cliente é feito por telefone (busca parcial com contains)
+
+----------------------------------------------------------------------
+5.6 — Model Configuracao (Tabela: configuracoes)
+----------------------------------------------------------------------
+  Propósito: Configurações gerais da empresa (single-row pattern)
+
+  Campos:
+    id                     String   @id @default(cuid())
+    nomeEmpresa            String?
+    subtituloEmpresa       String?
+    logoUrl                String?
+    logoCloudPath          String?
+    endereco               String?
+    bairro                 String?
+    cidade                 String?
+    estado                 String?
+    cep                    String?
+    cnpj                   String?
+    telefone               String?
+    whatsapp               String?
+    email                  String?
+    textoCabecalho         String?
+    exibirEndereco         Boolean  @default(true)
+    exibirTelefone         Boolean  @default(true)
+    exibirWhatsapp         Boolean  @default(true)
+    exibirEmail            Boolean  @default(true)
+    exibirCnpj             Boolean  @default(true)
+    exibirNumeroOSNoTopo   Boolean  @default(true)
+    prefixoNumeroOS        String?  @default("OS")
+    prefixoNumeroOrcamento String?  @default("ORC")
+    posicaoLogo            String?  @default("esquerda")
+    alinhamentoCabecalho   String?  @default("esquerda")
+    corCabecalho           String?  @default("#6c63ff")
+    garantiaDias           Int?     @default(90)
+    textoGarantia          String?
+    textoBackup            String?
+    textoNaoRetirada       String?
+    textoPerdaGarantia     String?
+    observacaoOS           String?
+    tema                   String?  @default("escuro")
+    createdAt              DateTime @default(now())
+    updatedAt              DateTime @updatedAt
+
+  Notas:
+    - Apenas UM registro existe (padrão single-row)
+    - Tema pode ser "escuro" ou "claro"
+    - corCabecalho é usada nas exportações PDF/PNG (padrão #6c63ff)
+    - prefixoNumeroOS e prefixoNumeroOrcamento aparecem nos documentos exportados
+    - Campos exibir* controlam quais informações aparecem no cabeçalho dos PDFs
+    - garantiaDias e textos de termos aparecem no rodapé dos PDFs
+
+----------------------------------------------------------------------
+5.7 — Model Orcamento (Tabela: orcamentos)
+----------------------------------------------------------------------
+  Propósito: Orçamentos para clientes
+
+  Campos:
+    id                String    @id @default(cuid())
+    numero            Int       @unique @default(autoincrement())
+    clienteId         String?
+    nomeCliente       String
+    telefoneCliente   String
+    tipoEquipamento   String
+    marca             String?
+    modelo            String?
+    numeroSerie       String?
+    descricao         String
+    pecas             String?
+    servicos          String?   ← JSON string: [{ nome, valor }]
+    valorTotal        Float     @default(0)
+    valorPixVista     Float?
+    formaPagamento    String?
+    parcelamento      String?
+    observacoes       String?
+    status            String    @default("pendente")
+    createdAt         DateTime  @default(now())
+    updatedAt         DateTime  @updatedAt
+
+  Relações:
+    cliente   Cliente? @relation(fields: [clienteId], references: [id])
+
+  Notas:
+    - numero é auto-incremento (1, 2, 3...)
+    - servicos é uma STRING JSON, não uma relação — formato: [{"nome":"...", "valor":99.90}]
+    - status pode ser: "pendente", "aprovado", "cancelado", "recusado"
+    - nomeCliente e telefoneCliente são duplicados do Cliente (desnormalizados)
+    - tipoEquipamento: "notebook", "desktop", "impressora", "monitor", "celular",
+      "tablet", "outro"
+    - Quando aprovado, uma OrdemServico é criada automaticamente
+
+----------------------------------------------------------------------
+5.8 — Model Marca (Tabela: marcas)
+----------------------------------------------------------------------
+  Propósito: Catálogo de marcas de equipamentos
+
+  Campos:
+    id        String   @id @default(cuid())
+    nome      String   @unique
+    createdAt DateTime @default(now())
+
+  Relações:
+    modelos   Modelo[]
+
+  Notas:
+    - 25 marcas pré-cadastradas via seed (Dell, HP, Lenovo, Samsung, etc.)
+    - Usada como dropdown em formulários de OS e Orçamento
+
+----------------------------------------------------------------------
+5.9 — Model Modelo (Tabela: modelos)
+----------------------------------------------------------------------
+  Propósito: Catálogo de modelos (vinculados a marcas)
+
+  Campos:
+    id       String   @id @default(cuid())
+    nome     String
+    marcaId  String
+
+  Relações:
+    marca   Marca @relation(fields: [marcaId], references: [id], onDelete: Cascade)
+
+  Índices: @@unique([nome, marcaId])
+  Notas:
+    - Modelos são filhos de Marca (1:N)
+    - Ao selecionar marca, modelos são filtrados
+    - Pode-se digitar modelo customizado se não estiver na lista
+
+----------------------------------------------------------------------
+5.10 — Model ServicoPadrao (Tabela: servicos_padrao)
+----------------------------------------------------------------------
+  Propósito: Catálogo de serviços/peças com preços pré-definidos
+
+  Campos:
+    id        String   @id @default(cuid())
+    nome      String   @unique
+    valor     Float
+    createdAt DateTime @default(now())
+
+  Notas:
+    - 23 serviços pré-cadastrados via seed
+    - Exemplos: "Formatação + Instalação Windows" (R$120),
+      "Troca de Tela Notebook" (R$280), "Limpeza Interna" (R$80)
+    - Usados como sugestões nos formulários de Orçamento
+    - Ao selecionar, nome e valor são copiados para o orçamento
+    - Valor pode ser editado no orçamento após seleção
+
+----------------------------------------------------------------------
+5.11 — Model OrdemServico (Tabela: ordens_servico)
+----------------------------------------------------------------------
+  Propósito: Ordens de serviço — documento principal do negócio
+
+  Campos:
+    id                String    @id @default(cuid())
+    numero            Int       @unique @default(autoincrement())
+    clienteId         String
+    tecnicoId         String?
+    tipoEquipamento   String
+    marca             String?
+    modelo            String?
+    numeroSerie       String?
+    descricaoProblema String
+    diagnostico       String?
+    servicoExecutado  String?
+    observacoes       String?
+    valorTotal        Float     @default(0)
+    formaPagamento    String?
+    status            String    @default("aberta")
+    dataEntrada       DateTime?
+    dataPrevista      DateTime?
+    dataRetirada      DateTime?
+    createdAt         DateTime  @default(now())
+    updatedAt         DateTime  @updatedAt
+
+  Relações:
+    cliente   Cliente     @relation(fields: [clienteId], references: [id])
+    tecnico   User?       @relation(fields: [tecnicoId], references: [id])
+    lancamentos Lancamento[]
+
+  Notas:
+    - numero é auto-incremento separado do orçamento
+    - status pode ser: "aberta", "em_andamento", "aguardando_peca",
+      "concluida", "cancelada"
+    - formaPagamento pode ser: "dinheiro", "pix", "cartao_debito",
+      "cartao_credito", "transferencia", "boleto"
+    - tecnicoId referencia User.id (técnico atribuído)
+    - Ao concluir (status → concluida), um modal de pagamento é exibido
+      e um Lancamento de entrada é criado automaticamente
+    - dataEntrada é preenchida na criação
+    - dataPrevista é opcional, definida pelo técnico
+    - dataRetirada é definida quando o cliente retira o equipamento
+
+----------------------------------------------------------------------
+5.12 — Model Lancamento (Tabela: lancamentos)
+----------------------------------------------------------------------
+  Propósito: Lançamentos financeiros (entradas e saídas)
+
+  Campos:
+    id              String    @id @default(cuid())
+    tipo            String    — "entrada" ou "saida"
+    categoria       String    — "servico", "despesa", "prolabore", etc.
+    descricao       String
+    valor           Float
+    formaPagamento  String?
+    data            DateTime  @default(now())
+    ordemServicoId  String?
+    createdAt       DateTime  @default(now())
+
+  Relações:
+    ordemServico  OrdemServico? @relation(fields: [ordemServicoId], references: [id])
+
+  Notas:
+    - tipo "entrada" = receita, tipo "saida" = despesa
+    - categoria "servico" = entrada automática de OS concluída
+    - categoria "despesa" = despesa manual registrada pelo usuário
+    - categoria "prolabore" = retirada de pró-labore dos sócios
+    - ordemServicoId vincula entradas de serviço à OS correspondente
+    - Lançamentos de despesa e pró-labore não têm ordemServicoId
+    - formaPagamento segue os mesmos valores da OS
+
+----------------------------------------------------------------------
+5.13 — Model ProLaboreConfig (Tabela: pro_labore_configs)
+----------------------------------------------------------------------
+  Propósito: Configuração de percentual de pró-labore dos sócios
+
+  Campos:
+    id               String  @id @default(cuid())
+    percentualSocio1 Float   @default(50)
+    percentualSocio2 Float   @default(50)
+    nomeSocio1       String  @default("Sócio 1")
+    nomeSocio2       String  @default("Sócio 2")
+    createdAt        DateTime @default(now())
+    updatedAt        DateTime @updatedAt
+
+  Notas:
+    - Single-row pattern (apenas 1 registro)
+    - Percentuais definem a divisão do faturamento semanal
+    - Por padrão, 50% / 50% entre os dois sócios
+    - Nomes dos sócios são customizáveis
+
+----------------------------------------------------------------------
+5.14 — Model CaixaSemanal (Tabela: caixas_semanais)
+----------------------------------------------------------------------
+  Propósito: Controle de abertura/fechamento de caixa semanal
+
+  Campos:
+    id           String    @id @default(cuid())
+    dataInicio   DateTime
+    dataFim      DateTime?
+    saldoInicial Float     @default(0)
+    ativo        Boolean   @default(true)
+    createdAt    DateTime  @default(now())
+
+  Notas:
+    - Apenas um caixa pode estar ativo por vez
+    - Ao abrir novo caixa, o anterior é desativado (ativo = false)
+    - dataInicio é definida na criação
+    - dataFim é definida ao encerrar o caixa
+    - saldoInicial pode ser definido pelo usuário ao abrir
+    - O caixa ativo é exibido na sidebar com a data de início
+
+================================================================================
+SEÇÃO 6 — AUTENTICAÇÃO E AUTORIZAÇÃO
+================================================================================
+
+PROVIDER: Credentials (email + senha)
+ADAPTER: PrismaAdapter
+ARQUIVO: lib/auth.ts
+
+CONFIGURAÇÃO DETALHADA (authOptions):
+  session:
+    strategy: "jwt"
+    maxAge: 30 * 24 * 60 * 60 (30 dias)
+
+  pages:
+    signIn: "/login"
+
+  callbacks:
+    jwt({ token, user }):
+      - Se user existe (login), adiciona user.id e user.name ao token
+      - Retorna token com id e name
+
+    session({ session, token }):
+      - Copia token.id → session.user.id
+      - Copia token.name → session.user.name
+      - Retorna session enriquecida
+
+  authorize(credentials):
+    1. Busca user por email (case-insensitive não implementado)
+    2. Compara senha com bcrypt.compare()
+    3. Se válido, retorna { id, email, name }
+    4. Se inválido, retorna null → erro de login
+
+FLUXO DE LOGIN:
+  1. Usuário acessa /login
+  2. Preenche email e senha
+  3. Frontend chama signIn('credentials', { email, password, redirect: false })
+  4. NextAuth chama authorize()
+  5. Se sucesso → JWT gerado → redirect para /dashboard
+  6. Se falha → mensagem "Credenciais inválidas"
+
+PROTEÇÃO DE ROTAS:
+  - Todas as rotas de API verificam: getServerSession(authOptions)
+  - Se sem sessão → retorna 401 { error: 'Não autorizado' }
+  - Páginas do dashboard estão no route group (dashboard) com layout
+    que não faz redirect server-side (proteção é client-side via fetch)
+
+ENDPOINT DE SIGNUP (/api/signup):
+  - POST com { name, email, password }
+  - Verifica se email já existe
+  - Hash da senha com bcrypt (10 rounds)
+  - Cria user no banco via prisma.user.create()
+  - Retorna 201 com user (sem senha)
+
+NOTA DE SEGURANÇA:
+  - Não há RBAC (Role-Based Access Control) — todos são "admin"
+  - Não há proteção CSRF explícita (NextAuth gerencia internamente)
+  - Não há rate limiting nos endpoints de login/signup
+  - Sessão é armazenada em cookie HTTP-only (gerenciado pelo NextAuth)
+
+================================================================================
+SEÇÃO 7 — ROTAS DE API — INVENTÁRIO COMPLETO
+================================================================================
+
+Todas as rotas estão em: app/api/
+Todas requerem autenticação (getServerSession) exceto as de auth.
+
+----------------------------------------------------------------------
+7.1 — /api/auth/[...nextauth]  (Route: GET, POST)
+----------------------------------------------------------------------
+  Arquivo: app/api/auth/[...nextauth]/route.ts
+  Função: Handler principal do NextAuth
+  Detalhe: Exporta GET e POST usando NextAuth(authOptions)
+
+----------------------------------------------------------------------
+7.2 — /api/auth/login  (POST)
+----------------------------------------------------------------------
+  Arquivo: app/api/auth/login/route.ts
+  Função: Endpoint alternativo de login (não usado pelo frontend)
+  Body: { email, password }
+  Retorno: { success: true, user } ou 401
+
+----------------------------------------------------------------------
+7.3 — /api/signup  (POST)
+----------------------------------------------------------------------
+  Arquivo: app/api/signup/route.ts
+  Função: Cadastro de novo usuário
+  Body: { name, email, password }
+  Validação: Verifica email duplicado
+  Retorno: 201 { user } ou 400/500
+
+----------------------------------------------------------------------
+7.4 — /api/clientes  (GET, POST)
+----------------------------------------------------------------------
+  Arquivo: app/api/clientes/route.ts
+
+  GET:
+    Query params: ?search=texto
+    Busca: nome, telefone, email, cpfCnpj (contains, insensitive)
+    Ordenação: createdAt desc
+    Retorno: Array de Cliente[]
+
+  POST:
+    Body: { nome, telefone, whatsapp?, email?, cpfCnpj?, endereco?,
+            bairro?, cidade?, estado?, cep? }
+    Retorno: 201 { cliente }
+
+----------------------------------------------------------------------
+7.5 — /api/clientes/[id]  (GET, PUT, DELETE)
+----------------------------------------------------------------------
+  Arquivo: app/api/clientes/[id]/route.ts
+
+  GET: Retorna cliente por ID com include: { ordens: true, orcamentos: true }
+  PUT: Atualiza campos do cliente
+  DELETE: Remove cliente (não verifica dependências — pode causar erro FK)
+
+----------------------------------------------------------------------
+7.6 — /api/ordens  (GET, POST)
+----------------------------------------------------------------------
+  Arquivo: app/api/ordens/route.ts
+
+  GET:
+    Query params: ?status=valor&search=texto&tecnico=userId
+    Busca: numero (startsWith), cliente.nome (contains), marca, modelo
+    Include: cliente, tecnico
+    Ordenação: createdAt desc
+    Retorno: Array de OrdemServico[] com relações
+
+  POST:
+    Body: {
+      clienteId?,           ← se fornecido, usa cliente existente
+      nomeCliente?,         ← se clienteId não fornecido, cria cliente
+      telefoneCliente?,
+      tipoEquipamento, marca?, modelo?, numeroSerie?,
+      descricaoProblema, diagnostico?, servicoExecutado?, observacoes?,
+      valorTotal?, formaPagamento?,
+      tecnicoId?, dataEntrada?, dataPrevista?
+    }
+    Lógica:
+      1. Se clienteId fornecido → usa esse cliente
+      2. Se nomeCliente + telefoneCliente → busca por telefone
+         a. Se encontra → usa existente
+         b. Se não → cria novo Cliente automaticamente
+      3. Cria OrdemServico com autoincrement numero
+      4. Envia notificação por e-mail (se configurado)
+    Retorno: 201 { ordem com cliente e tecnico }
+
+----------------------------------------------------------------------
+7.7 — /api/ordens/[id]  (GET, PUT)
+----------------------------------------------------------------------
+  Arquivo: app/api/ordens/[id]/route.ts
+
+  GET:
+    Include: cliente, tecnico, lancamentos
+    Retorno: OrdemServico completa
+
+  PUT:
+    Body: Campos parciais de OrdemServico
+    Lógica especial para mudança de status:
+      - Se status muda para "concluida":
+        1. Define dataRetirada = now()
+        2. Cria Lancamento automático de entrada:
+           - tipo: "entrada"
+           - categoria: "servico"
+           - descricao: "OS #{numero} - {cliente.nome}"
+           - valor: valorTotal da OS
+           - formaPagamento: formaPagamento da OS
+           - ordemServicoId: id da OS
+    Retorno: OrdemServico atualizada
+
+----------------------------------------------------------------------
+7.8 — /api/ordens/[id]/export  (GET)
+----------------------------------------------------------------------
+  Arquivo: app/api/ordens/[id]/export/route.ts
+  Função: Gera PDF da OS
+  Fluxo:
+    1. Busca OS com include { cliente, tecnico }
+    2. Chama loadExportConfig() → busca Configuracao e logo
+    3. Chama buildOSHtml(ordem, config, logoBase64) → gera HTML
+    4. Chama generatePdf(html, filename) → chama API Abacus HTML2PDF
+    5. Retorna PDF como application/pdf com Content-Disposition
+
+----------------------------------------------------------------------
+7.9 — /api/ordens/[id]/export-png  (GET)
+----------------------------------------------------------------------
+  Arquivo: app/api/ordens/[id]/export-png/route.ts
+  Função: Retorna HTML para renderização PNG client-side
+  Fluxo:
+    1. Busca OS com include { cliente, tecnico }
+    2. Chama loadExportConfig()
+    3. Chama buildOSHtmlPng(ordem, config)
+    4. Retorna { success: true, html, filename }
+    5. Client-side usa html2canvas para converter HTML → PNG
+
+----------------------------------------------------------------------
+7.10 — /api/orcamentos  (GET, POST)
+----------------------------------------------------------------------
+  Arquivo: app/api/orcamentos/route.ts
+
+  GET:
+    Query params: ?status=valor&search=texto
+    Busca: numero (por conversão para string, startsWith),
+           nomeCliente (contains), telefoneCliente (contains),
+           marca (contains), modelo (contains)
+    Include: cliente
+    Ordenação: createdAt desc
+
+  POST:
+    Body: {
+      nomeCliente, telefoneCliente,
+      tipoEquipamento, marca?, modelo?, numeroSerie?,
+      descricao, pecas?,
+      servicos?,          ← JSON string: [{ nome, valor }]
+      valorTotal?, valorPixVista?, formaPagamento?, parcelamento?,
+      observacoes?
+    }
+    Lógica:
+      1. Busca cliente por telefone (exact match)
+      2. Se não encontra → cria Cliente com nome e telefone
+      3. Cria Orcamento com clienteId e dados
+    Retorno: 201 { orcamento com cliente }
+
+----------------------------------------------------------------------
+7.11 — /api/orcamentos/[id]  (GET, PUT, POST, DELETE)
+----------------------------------------------------------------------
+  Arquivo: app/api/orcamentos/[id]/route.ts
+
+  GET:
+    Include: cliente
+    Retorno: Orcamento completo
+
+  PUT:
+    Body: Campos parciais de Orcamento
+    Permite atualizar status, valores, etc.
+
+  POST (APROVAR ORÇAMENTO):
+    Função: Converte orçamento aprovado em Ordem de Serviço
+    Lógica:
+      1. Busca orçamento e valida status (deve ser "pendente")
+      2. Atualiza status para "aprovado"
+      3. Cria OrdemServico com dados do orçamento:
+         - clienteId do orçamento
+         - tipoEquipamento, marca, modelo, numeroSerie
+         - descricaoProblema = orc.descricao
+         - valorTotal = orc.valorTotal
+         - formaPagamento = orc.formaPagamento
+         - status = "aberta"
+         - dataEntrada = now()
+      4. Envia notificação por e-mail
+    Retorno: { orcamento, ordemServico }
+
+  DELETE:
+    Remove orçamento (hard delete)
+
+----------------------------------------------------------------------
+7.12 — /api/orcamentos/[id]/export  (GET)
+----------------------------------------------------------------------
+  Arquivo: app/api/orcamentos/[id]/export/route.ts
+  Função: Gera PDF do orçamento
+  Fluxo: Idêntico ao export de OS, usando buildOrcamentoHtml()
+
+----------------------------------------------------------------------
+7.13 — /api/orcamentos/[id]/export-png  (GET)
+----------------------------------------------------------------------
+  Arquivo: app/api/orcamentos/[id]/export-png/route.ts
+  Função: Retorna HTML para PNG do orçamento
+  Fluxo: Idêntico ao export-png de OS, usando buildOrcamentoHtmlPng()
+
+----------------------------------------------------------------------
+7.14 — /api/financeiro  (GET, POST)
+----------------------------------------------------------------------
+  Arquivo: app/api/financeiro/route.ts
+
+  GET:
+    Query params: ?tipo=entrada|saida&dataInicio=ISO&dataFim=ISO
+    Filtros: tipo, range de data
+    Include: ordemServico (apenas id, numero)
+    Ordenação: data desc
+
+  POST:
+    Body: { tipo, categoria, descricao, valor, formaPagamento?, data? }
+    Cria novo Lancamento
+    Retorno: 201 { lancamento }
+
+----------------------------------------------------------------------
+7.15 — /api/financeiro/[id]  (DELETE)
+----------------------------------------------------------------------
+  Arquivo: app/api/financeiro/[id]/route.ts
+  Função: Remove lançamento individual
+  Retorno: { ok: true }
+
+----------------------------------------------------------------------
+7.16 — /api/financeiro/resumo  (GET)
+----------------------------------------------------------------------
+  Arquivo: app/api/financeiro/resumo/route.ts
+  Função: Retorna resumo financeiro
+  Query params: ?periodo=semana|mes|ano&dataInicio=ISO&dataFim=ISO
+  Retorno: {
+    totalEntradas, totalSaidas, saldo,
+    porCategoria: { [categoria]: valor },
+    porFormaPagamento: { [forma]: valor },
+    lancamentos: Lancamento[]
+  }
+
+----------------------------------------------------------------------
+7.17 — /api/financeiro/pro-labore  (GET, PUT)
+----------------------------------------------------------------------
+  Arquivo: app/api/financeiro/pro-labore/route.ts
+
+  GET:
+    Retorna config de pró-labore + faturamento semanal
+    Calcula: soma de entradas da semana atual (tipo="entrada")
+    Retorno: {
+      config: ProLaboreConfig,
+      faturamentoSemanal: Float,
+      valorSocio1: Float (faturamento * percentual1 / 100),
+      valorSocio2: Float (faturamento * percentual2 / 100)
+    }
+
+  PUT:
+    Body: { percentualSocio1, percentualSocio2, nomeSocio1, nomeSocio2 }
+    Atualiza (upsert) a config de pró-labore
+
+----------------------------------------------------------------------
+7.18 — /api/financeiro/caixa  (GET, POST)
+----------------------------------------------------------------------
+  Arquivo: app/api/financeiro/caixa/route.ts
+
+  GET:
+    Retorna caixa ativo (ativo = true) ou null
+    Include: soma de lançamentos no período do caixa
+
+  POST:
+    Body: { saldoInicial?, fechar? }
+    Se fechar = true:
+      - Atualiza caixa ativo: ativo = false, dataFim = now()
+    Se não:
+      - Desativa caixas anteriores (updateMany ativo = false)
+      - Cria novo CaixaSemanal com saldoInicial e dataInicio = now()
+
+----------------------------------------------------------------------
+7.19 — /api/dashboard  (GET)
+----------------------------------------------------------------------
+  Arquivo: app/api/dashboard/route.ts
+  Função: Retorna dados para o dashboard principal
+  Retorno: {
+    totalOS, osAbertas, osConcluidas, osCanceladas,
+    totalOrcamentos, orcPendentes, orcAprovados,
+    totalClientes,
+    faturamentoMes, faturamentoSemana,
+    recentes: OrdemServico[] (últimas 5),
+    osPorStatus: { [status]: count },
+    faturamentoPorDia: [{ data, valor }] (últimos 30 dias)
+  }
+
+----------------------------------------------------------------------
+7.20 — /api/relatorios  (GET)
+----------------------------------------------------------------------
+  Arquivo: app/api/relatorios/route.ts
+  Função: Dados para página de relatórios
+  Query params: ?dataInicio=ISO&dataFim=ISO
+  Retorno: {
+    totalOS, totalOrcamentos, osPorStatus, orcPorStatus,
+    faturamento, ticketMedio,
+    topClientes: [{ nome, total, valor }],
+    topServicos: [{ servico, total }]
+  }
+
+----------------------------------------------------------------------
+7.21 — /api/settings  (GET, PUT)
+----------------------------------------------------------------------
+  Arquivo: app/api/settings/route.ts
+
+  GET:
+    Retorna Configuracao (primeiro registro, ou cria default)
+    Se logoCloudPath existe, gera URL pública do S3
+
+  PUT:
+    Body: Campos parciais de Configuracao
+    Upsert no primeiro registro
+
+----------------------------------------------------------------------
+7.22 — /api/tecnicos  (GET)
+----------------------------------------------------------------------
+  Arquivo: app/api/tecnicos/route.ts
+  Função: Lista todos os usuários como técnicos disponíveis
+  Retorno: Array de { id, name, email }
+  Nota: Usado no select de técnico ao criar/editar OS
+
+----------------------------------------------------------------------
+7.23 — /api/marcas  (GET, POST)
+----------------------------------------------------------------------
+  Arquivo: app/api/marcas/route.ts
+
+  GET: Lista todas as marcas com include: { modelos: true }
+       Ordenação: nome asc
+  POST: Cria nova marca { nome }
+
+----------------------------------------------------------------------
+7.24 — /api/marcas/[id]  (PUT, DELETE)
+----------------------------------------------------------------------
+  Arquivo: app/api/marcas/[id]/route.ts
+  PUT: Atualiza nome da marca
+  DELETE: Remove marca (cascade deleta modelos)
+
+----------------------------------------------------------------------
+7.25 — /api/modelos  (GET, POST)
+----------------------------------------------------------------------
+  Arquivo: app/api/modelos/route.ts
+
+  GET: Lista todos os modelos com include: { marca: true }
+       Ordenação: nome asc
+  POST: Cria novo modelo { nome, marcaId }
+
+----------------------------------------------------------------------
+7.26 — /api/modelos/[id]  (PUT, DELETE)
+----------------------------------------------------------------------
+  Arquivo: app/api/modelos/[id]/route.ts
+  PUT: Atualiza nome do modelo
+  DELETE: Remove modelo
+
+----------------------------------------------------------------------
+7.27 — /api/servicos-padrao  (GET, POST)
+----------------------------------------------------------------------
+  Arquivo: app/api/servicos-padrao/route.ts
+
+  GET: Lista todos os serviços padrão, ordenados por nome asc
+  POST: Cria novo serviço { nome, valor }
+
+----------------------------------------------------------------------
+7.28 — /api/servicos-padrao/[id]  (PUT, DELETE)
+----------------------------------------------------------------------
+  Arquivo: app/api/servicos-padrao/[id]/route.ts
+  PUT: Atualiza nome e/ou valor
+  DELETE: Remove serviço padrão
+
+----------------------------------------------------------------------
+7.29 — /api/upload/presigned  (POST)
+----------------------------------------------------------------------
+  Arquivo: app/api/upload/presigned/route.ts
+  Função: Gera presigned URL para upload de arquivo ao S3
+  Body: { fileName, contentType, isPublic? }
+  Retorno: { uploadUrl, cloud_storage_path }
+  Uso: Upload da logo da empresa na página de configurações
+
+----------------------------------------------------------------------
+7.30 — /api/notificacao  (POST)
+----------------------------------------------------------------------
+  Arquivo: app/api/notificacao/route.ts
+  Função: Envia notificação por e-mail
+  Body: { tipo, dados }
+  Usa: NOTIFICATION_API_URL e NOTIFICATION_API_KEY
+  Tipos: "nova_os", "orcamento_aprovado"
+
+================================================================================
+SEÇÃO 8 — PÁGINAS E TELAS — INVENTÁRIO COMPLETO
+================================================================================
+
+----------------------------------------------------------------------
+8.1 — /login  (app/login/page.tsx)
+----------------------------------------------------------------------
+  Tipo: Client Component ('use client')
+  Autenticação: Pública (sem proteção)
+
+  Elementos visuais:
+    - Fundo gradient roxo/azul (#6c63ff → #3b82f6)
+    - Card central com logo (ícone Monitor)
+    - Título "DRT Informática"
+    - Campos: E-mail, Senha
+    - Botão "Entrar"
+    - Mensagem de erro condicional
+
+  Comportamento:
+    - Se já autenticado (session existe), redireciona para /dashboard
+    - Chama signIn('credentials', { redirect: false, email, password })
+    - Se ok → router.push('/dashboard')
+    - Se erro → exibe mensagem "Credenciais inválidas"
+    - Animação de entrada com Framer Motion (fade + slide up)
+
+----------------------------------------------------------------------
+8.2 — /dashboard  (app/(dashboard)/dashboard/page.tsx)
+----------------------------------------------------------------------
+  Tipo: Client Component
+  Autenticação: Sim (via fetch, redireciona se 401)
+
+  Layout: Grid com cards de métricas + gráfico + lista recente
+
+  Dados buscados (GET /api/dashboard):
+    - Total de OS, OS abertas, OS concluídas
+    - Total de orçamentos, orçamentos pendentes
+    - Total de clientes
+    - Faturamento do mês e da semana
+    - OS recentes (últimas 5)
+    - Faturamento por dia (gráfico de linha)
+
+  Componentes usados:
+    - CountUp (animação numérica nos cards)
+    - DashboardChart (gráfico Recharts de linha/área)
+    - StatusBadge (badges coloridos nas OS recentes)
+
+  Cards exibidos:
+    1. Total de OS (com sub-indicadores: abertas, concluídas)
+    2. Orçamentos (com sub-indicador: pendentes)
+    3. Clientes cadastrados
+    4. Faturamento do mês (R$)
+    5. Faturamento da semana (R$)
+
+  Tabela "OS Recentes":
+    - Colunas: número, cliente, equipamento, status, valor, data
+    - Clique leva para /ordens/[id]
+
+----------------------------------------------------------------------
+8.3 — /clientes  (app/(dashboard)/clientes/page.tsx)
+----------------------------------------------------------------------
+  Tipo: Client Component
+  Autenticação: Sim
+
+  Funcionalidades:
+    - Lista de clientes com busca em tempo real
+    - Criação de cliente via modal
+    - Edição inline via modal
+    - Exclusão com confirmação
+    - Visualização de detalhes (expandir)
+
+  Campo de busca:
+    - Filtra por nome, telefone, email, CPF/CNPJ
+    - Debounce: busca a cada alteração
+
+  Modal de criação/edição:
+    - Campos: nome*, telefone*, whatsapp, email, cpfCnpj,
+      endereco, bairro, cidade, estado, cep
+    - * = obrigatório
+
+  Lista exibe:
+    - Nome, telefone, email, CPF/CNPJ
+    - Ícones de ação: editar, excluir
+    - Contagem de OS e orçamentos do cliente
+
+----------------------------------------------------------------------
+8.4 — /orcamentos  (app/(dashboard)/orcamentos/page.tsx)
+----------------------------------------------------------------------
+  Tipo: Client Component
+  Autenticação: Sim
+
+  Funcionalidades:
+    - Lista de orçamentos com filtro por status
+    - Busca por número, cliente, marca, modelo
+    - Link para criar novo orçamento
+    - Link para detalhe de cada orçamento
+
+  Filtros:
+    - Tabs por status: Todos, Pendentes, Aprovados, Cancelados
+    - Campo de busca textual
+
+  Tabela exibe:
+    - Número (com prefixo ORC), cliente, equipamento, valor, status, data
+    - Badge de status colorido
+    - Link para /orcamentos/[id]
+
+----------------------------------------------------------------------
+8.5 — /orcamentos/novo  (app/(dashboard)/orcamentos/novo/page.tsx)
+----------------------------------------------------------------------
+  Tipo: Client Component
+  Autenticação: Sim
+
+  Formulário dividido em seções:
+
+  SEÇÃO 1 — CLIENTE:
+    - Busca por telefone (lookup)
+    - Se encontra cliente, preenche nome automaticamente
+    - Se não encontra, permite digitar nome e telefone (cria automaticamente)
+    - Campos: telefone (busca), nome, telefone (confirmação)
+
+  SEÇÃO 2 — EQUIPAMENTO:
+    - Tipo: select (notebook, desktop, impressora, monitor, celular, tablet, outro)
+    - Marca: select dinâmico (carregado de /api/marcas)
+    - Modelo: select dinâmico (filtrado pela marca selecionada)
+    - Modelo customizado: input se modelo não está na lista
+    - Número de série: input opcional
+
+  SEÇÃO 3 — PROBLEMA:
+    - Descrição do problema: textarea (obrigatório)
+    - Peças necessárias: textarea (opcional)
+
+  SEÇÃO 4 — SERVIÇOS/PRODUTOS:
+    - Busca de serviços padrão (carregados de /api/servicos-padrao)
+    - Autocomplete com sugestões
+    - Ao selecionar, adiciona à lista com nome e valor
+    - Permite remover itens da lista
+    - Valor total é calculado automaticamente pela soma dos serviços
+    - Permite edição manual do valor total
+
+  SEÇÃO 5 — FINANCEIRO:
+    - Valor total: calculado ou manual
+    - Valor PIX/à vista: input para desconto no PIX
+    - Forma de pagamento: select
+    - Parcelamento: input (ex: "3x", "6x")
+    - Observações: textarea
+
+  Submissão:
+    - POST /api/orcamentos com todos os dados
+    - Redireciona para /orcamentos/[id] após criação
+
+----------------------------------------------------------------------
+8.6 — /orcamentos/[id]  (app/(dashboard)/orcamentos/[id]/page.tsx)
+----------------------------------------------------------------------
+  Tipo: Client Component
+  Autenticação: Sim
+
+  Exibição:
+    - Card com dados do orçamento (cliente, equipamento, problema, serviços)
+    - Tabela de serviços/produtos (parseada do JSON)
+    - Valores: total, PIX/à vista, parcelamento
+    - Badge de status
+    - Data de criação
+
+  Ações disponíveis:
+    - APROVAR (apenas se status = "pendente"):
+      * POST /api/orcamentos/[id]
+      * Converte em Ordem de Serviço
+      * Redireciona para a OS criada
+
+    - CANCELAR (apenas se status = "pendente"):
+      * PUT /api/orcamentos/[id] com { status: "cancelado" }
+
+    - EXPORTAR PDF:
+      * GET /api/orcamentos/[id]/export
+      * Baixa arquivo PDF
+
+    - EXPORTAR PNG:
+      * GET /api/orcamentos/[id]/export-png
+      * Recebe HTML, renderiza em div oculta, usa html2canvas, baixa PNG
+
+    - EXCLUIR:
+      * DELETE /api/orcamentos/[id]
+      * Redireciona para /orcamentos
+
+----------------------------------------------------------------------
+8.7 — /ordens  (app/(dashboard)/ordens/page.tsx)
+----------------------------------------------------------------------
+  Tipo: Client Component
+  Autenticação: Sim
+
+  Funcionalidades:
+    - Lista de ordens de serviço com filtros
+    - Busca por número, cliente, marca, modelo
+    - Filtro por status (tabs)
+    - Filtro por técnico (select)
+    - Link para criar nova OS
+    - Link para detalhe de cada OS
+
+  Tabela exibe:
+    - Número (com prefixo OS), cliente, equipamento, técnico, status, valor, data
+    - Badge de status colorido (StatusBadge)
+    - Clique leva para /ordens/[id]
+
+----------------------------------------------------------------------
+8.8 — /ordens/nova  (app/(dashboard)/ordens/nova/page.tsx)
+----------------------------------------------------------------------
+  Tipo: Client Component
+  Autenticação: Sim
+
+  Formulário semelhante ao de orçamento, com seções:
+
+  SEÇÃO 1 — CLIENTE:
+    - Busca por telefone (lookup)
+    - Auto-criação de cliente se não encontrado
+    - Campos: telefone, nome
+
+  SEÇÃO 2 — EQUIPAMENTO:
+    - Tipo, Marca, Modelo (dinâmicos), Número de série
+
+  SEÇÃO 3 — SERVIÇO:
+    - Descrição do problema (obrigatório)
+    - Diagnóstico (opcional)
+    - Serviço executado (opcional)
+    - Observações (opcional)
+
+  SEÇÃO 4 — ATRIBUIÇÃO:
+    - Técnico responsável: select (carregado de /api/tecnicos)
+    - Data de entrada: date input (padrão: hoje)
+    - Data prevista: date input (opcional)
+
+  SEÇÃO 5 — FINANCEIRO:
+    - Valor total: input
+    - Forma de pagamento: select
+
+  Submissão:
+    - POST /api/ordens com todos os dados
+    - Redireciona para /ordens/[id]
+
+----------------------------------------------------------------------
+8.9 — /ordens/[id]  (app/(dashboard)/ordens/[id]/page.tsx)
+----------------------------------------------------------------------
+  Tipo: Client Component
+  Autenticação: Sim
+
+  Exibição detalhada:
+    - Header com número da OS e badge de status
+    - Card de informações do cliente
+    - Card de informações do equipamento
+    - Card de descrição do problema, diagnóstico, serviço executado
+    - Card financeiro (valor total, forma de pagamento)
+    - Card de datas (entrada, prevista, retirada)
+    - Técnico atribuído
+
+  Edição inline:
+    - Campos editáveis: diagnóstico, servicoExecutado, observacoes,
+      valorTotal, formaPagamento, tecnicoId, dataPrevista
+    - Botão "Salvar Alterações" (PUT /api/ordens/[id])
+
+  Mudança de status:
+    - Botões para mudar status: Em Andamento, Aguardando Peça, Concluída, Cancelada
+    - PUT /api/ordens/[id] com { status: novoStatus }
+
+  MODAL DE CONCLUSÃO:
+    - Quando status muda para "concluida", abre modal de pagamento
+    - Campos do modal:
+      * Valor cobrado (pré-preenchido com valorTotal da OS)
+      * Forma de pagamento (select com opções)
+    - Ao confirmar:
+      1. PUT /api/ordens/[id] com { status: "concluida", valorTotal, formaPagamento }
+      2. O backend cria automaticamente um Lancamento de entrada
+
+  Exportações:
+    - EXPORTAR PDF: GET /api/ordens/[id]/export → baixa PDF
+    - EXPORTAR PNG: GET /api/ordens/[id]/export-png → renderiza HTML + html2canvas
+
+----------------------------------------------------------------------
+8.10 — /financeiro  (app/(dashboard)/financeiro/page.tsx)
+----------------------------------------------------------------------
+  Tipo: Client Component
+  Autenticação: Sim
+
+  Módulo completo com 4 tabs:
+
+  TAB 1 — RESUMO:
+    - Cards: Total de entradas, Total de saídas, Saldo
+    - Filtro por período (semana, mês, ano, customizado)
+    - Gráfico de entradas vs saídas (Recharts)
+    - Distribuição por forma de pagamento
+    - Distribuição por categoria
+
+  TAB 2 — LANÇAMENTOS:
+    - Lista de todos os lançamentos
+    - Filtro por tipo (entrada/saída) e período
+    - Exibe: data, descrição, categoria, valor, forma de pagamento
+    - Botão excluir em cada lançamento (DELETE /api/financeiro/[id])
+    - Entradas de serviço mostram link para a OS
+
+  TAB 3 — NOVA DESPESA:
+    - Formulário para registrar despesa manual
+    - Campos: descrição, categoria, valor, forma de pagamento, data
+    - Categorias: "Aluguel", "Energia", "Internet", "Material",
+      "Peças", "Transporte", "Alimentação", "Outros"
+    - POST /api/financeiro com tipo: "saida"
+
+  TAB 4 — PRÓ-LABORE:
+    - Exibe faturamento da semana atual
+    - Calcula valores dos sócios baseado nos percentuais configurados
+    - Configuração: nomes e percentuais dos sócios
+    - Botão "Retirar Pró-labore" cria lançamento de saída:
+      * tipo: "saida", categoria: "prolabore"
+      * descricao: "Pró-labore - {nomeSocio}"
+      * valor: faturamentoSemanal * percentual / 100
+    - Botão "Salvar Configuração" (PUT /api/financeiro/pro-labore)
+
+  CAIXA SEMANAL (integrado no financeiro):
+    - Exibe se há caixa ativo e sua data de início
+    - Botão "Abrir Caixa" (campo saldo inicial)
+    - Botão "Fechar Caixa"
+
+----------------------------------------------------------------------
+8.11 — /relatorios  (app/(dashboard)/relatorios/page.tsx)
+----------------------------------------------------------------------
+  Tipo: Client Component
+  Autenticação: Sim
+
+  Funcionalidades:
+    - Filtro por período (data início, data fim)
+    - Cards com totais: OS, orçamentos, faturamento, ticket médio
+    - Distribuição de OS por status (gráfico de barras)
+    - Top clientes (por quantidade e valor)
+    - Top serviços (por quantidade)
+
+  Dados: GET /api/relatorios?dataInicio=...&dataFim=...
+
+----------------------------------------------------------------------
+8.12 — /configuracoes  (app/(dashboard)/configuracoes/page.tsx)
+----------------------------------------------------------------------
+  Tipo: Client Component
+  Autenticação: Sim
+
+  4 tabs:
+
+  TAB 1 — EMPRESA:
+    - Logo da empresa (upload via S3 presigned URL)
+    - Nome, subtítulo/slogan
+    - CNPJ, telefone, WhatsApp, e-mail
+    - Endereço completo (endereço, bairro, cidade, estado, CEP)
+
+  TAB 2 — CABEÇALHO:
+    - Prefixo do número da OS (ex: "OS", "DRT-OS")
+    - Prefixo do número do orçamento (ex: "ORC")
+    - Cor principal do cabeçalho (color picker)
+    - Posição da logo (esquerda, centro, direita)
+    - Alinhamento do cabeçalho (esquerda, centro, direita)
+    - Texto complementar do cabeçalho
+    - Toggles: exibir/ocultar campos (endereço, telefone, WhatsApp,
+      email, CNPJ, número da OS no topo)
+
+  TAB 3 — TERMOS:
+    - Prazo de garantia (dias)
+    - Texto de garantia
+    - Texto sobre backup de dados
+    - Texto sobre equipamentos não retirados
+    - Texto sobre perda de garantia
+    - Observação padrão da OS
+
+  TAB 4 — APARÊNCIA:
+    - Tema do sistema: Escuro ou Claro
+
+  Todos os campos são salvos com um único botão "Salvar Tudo"
+  (PUT /api/settings com todo o form)
+
+----------------------------------------------------------------------
+8.13 — Layout do Dashboard  (app/(dashboard)/layout.tsx)
+----------------------------------------------------------------------
+  Tipo: Client Component
+  Estrutura:
+    - Sidebar fixa à esquerda (componente Sidebar)
+    - Área de conteúdo à direita com padding
+    - Sidebar responsiva (toggle mobile)
+
+================================================================================
+SEÇÃO 9 — COMPONENTES COMPARTILHADOS
+================================================================================
+
+----------------------------------------------------------------------
+9.1 — Sidebar (components/sidebar.tsx)
+----------------------------------------------------------------------
+  Tipo: Client Component
+  Função: Navegação principal do sistema
+
+  Itens do menu:
+    1. Dashboard (/dashboard) — ícone LayoutDashboard
+    2. Clientes (/clientes) — ícone Users
+    3. Orçamentos (/orcamentos) — ícone FileText
+    4. Ordens de Serviço (/ordens) — ícone ClipboardList
+    5. Financeiro (/financeiro) — ícone DollarSign
+    6. Relatórios (/relatorios) — ícone BarChart3
+    7. Configurações (/configuracoes) — ícone Settings
+
+  Recursos:
+    - Destaca item ativo baseado no pathname
+    - Animação de hover e transição
+    - Nome do usuário logado exibido no rodapé
+    - Botão de logout (signOut do NextAuth)
+    - Exibe caixa semanal ativo (se houver) com data de início
+    - Responsivo: em mobile, overlay com toggle
+
+----------------------------------------------------------------------
+9.2 — Modal (components/modal.tsx)
+----------------------------------------------------------------------
+  Tipo: Client Component
+  Props: isOpen, onClose, title, children, size?
+  Função: Modal genérico com overlay escuro, animação fade/scale
+  Usado em: Conclusão de OS (modal de pagamento), CRUD de clientes
+
+----------------------------------------------------------------------
+9.3 — StatusBadge (components/status-badge.tsx)
+----------------------------------------------------------------------
+  Tipo: Client Component
+  Props: status (string)
+  Função: Renderiza badge colorido baseado no status da OS
+
+  Mapeamento de cores:
+    aberta          → azul (#3b82f6)
+    em_andamento    → amarelo (#f59e0b)
+    aguardando_peca → roxo (#a855f7)
+    concluida       → verde (#22c55e)
+    cancelada       → vermelho (#ef4444)
+
+----------------------------------------------------------------------
+9.4 — CountUp (components/count-up.tsx)
+----------------------------------------------------------------------
+  Tipo: Client Component
+  Props: end (number), duration?, prefix?, suffix?, decimals?
+  Função: Animação de contagem numérica de 0 até o valor final
+  Usado em: Cards do dashboard (faturamento, totais)
+
+----------------------------------------------------------------------
+9.5 — DashboardShell (components/dashboard-shell.tsx)
+----------------------------------------------------------------------
+  Tipo: Client Component
+  Props: title, description?, children, action?
+  Função: Wrapper com header (título + descrição) e área de conteúdo
+  Usado em: Algumas páginas como container padronizado
+
+================================================================================
+SEÇÃO 10 — REGRAS DE NEGÓCIO
+================================================================================
+
+RN-01: CRIAÇÃO AUTOMÁTICA DE CLIENTE
+  Quando: Criação de OS ou Orçamento sem clienteId
+  Regra: Se nomeCliente e telefoneCliente fornecidos, busca por telefone.
+         Se não encontra, cria novo Cliente automaticamente.
+  Impacto: Evita necessidade de cadastro prévio.
+
+RN-02: APROVAÇÃO DE ORÇAMENTO → CRIAÇÃO DE OS
+  Quando: POST /api/orcamentos/[id] (ação de aprovar)
+  Regra: Status do orçamento muda para "aprovado" e uma OrdemServico é
+         criada automaticamente com os dados do orçamento.
+  Dados transferidos: clienteId, tipoEquipamento, marca, modelo,
+         numeroSerie, descricao → descricaoProblema, valorTotal,
+         formaPagamento.
+  Status da OS criada: "aberta", dataEntrada = now().
+
+RN-03: CONCLUSÃO DE OS → LANÇAMENTO FINANCEIRO
+  Quando: Status de OS muda para "concluida"
+  Regra: Um Lancamento de tipo "entrada", categoria "servico" é criado
+         automaticamente com o valorTotal e formaPagamento da OS.
+  Descrição do lançamento: "OS #{numero} - {cliente.nome}"
+  Vínculo: ordemServicoId = id da OS.
+
+RN-04: CAIXA SEMANAL ÚNICO
+  Quando: Abertura de novo caixa (POST /api/financeiro/caixa)
+  Regra: Todos os caixas anteriores são desativados (ativo = false).
+         Apenas um caixa pode estar ativo simultaneamente.
+
+RN-05: PRÓ-LABORE BASEADO EM FATURAMENTO SEMANAL
+  Quando: Cálculo de pró-labore (GET /api/financeiro/pro-labore)
+  Regra: Base de cálculo é a soma de todas as entradas (tipo="entrada")
+         da semana atual (segunda a domingo). Não usa o saldo (entradas
+         - saídas), usa apenas entradas brutas.
+  Fórmula: valorSocio = faturamentoSemanal * percentual / 100
+
+RN-06: NÚMERO AUTOMÁTICO DE OS E ORÇAMENTO
+  Regra: Os campos "numero" em OrdemServico e Orcamento são
+         @default(autoincrement()) — auto-incrementais e únicos.
+  Nota: São sequências separadas (OS #1 e ORC #1 podem coexistir).
+
+RN-07: SERVIÇOS DO ORÇAMENTO EM JSON
+  Regra: O campo "servicos" do Orcamento armazena uma string JSON.
+         Formato: [{ "nome": "string", "valor": number }]
+         Não é uma relação — é um campo de texto serializado.
+
+RN-08: LOOKUP DE CLIENTE POR TELEFONE
+  Regra: Em formulários de OS e Orçamento, o campo de busca de cliente
+         faz lookup por telefone (busca parcial com "contains").
+         Se encontrado, nome e telefone são preenchidos automaticamente.
+
+RN-09: CATEGORIAS DE DESPESA FIXAS
+  Regra: As categorias de despesa são hardcoded no frontend:
+         "Aluguel", "Energia", "Internet", "Material", "Peças",
+         "Transporte", "Alimentação", "Outros"
+
+RN-10: STATUS DE ORÇAMENTO
+  Valores possíveis: "pendente", "aprovado", "cancelado", "recusado"
+  Fluxo: pendente → aprovado (gera OS) OU pendente → cancelado
+  "recusado" é tratado como "cancelado" na exibição.
+
+RN-11: STATUS DE ORDEM DE SERVIÇO
+  Valores possíveis: "aberta", "em_andamento", "aguardando_peca",
+                     "concluida", "cancelada"
+  Fluxo típico: aberta → em_andamento → concluida
+  Qualquer status pode ir para "cancelada".
+  Conclusão aciona modal de pagamento e lançamento financeiro (RN-03).
+
+RN-12: TEMA PERSISTIDO NO BANCO
+  Regra: O tema (escuro/claro) é salvo na tabela Configuracao.
+  Aplicação: A sidebar lê a configuração e aplica data-theme no <html>.
+  Valores: "escuro" (padrão) ou "claro".
+
+RN-13: CONFIGURAÇÕES SINGLE-ROW
+  Regra: As tabelas Configuracao, ProLaboreConfig e CaixaSemanal (ativo)
+         seguem padrão de registro único. API faz findFirst ou upsert.
+
+RN-14: EXCLUSÃO DE LANÇAMENTOS
+  Regra: Qualquer lançamento pode ser excluído (DELETE /api/financeiro/[id]).
+         Não há proteção contra exclusão de lançamentos automáticos de OS.
+
+RN-15: FORMAS DE PAGAMENTO
+  Valores: "dinheiro", "pix", "cartao_debito", "cartao_credito",
+           "transferencia", "boleto"
+  Labels: Dinheiro, PIX, Cartão Débito, Cartão Crédito, Transferência, Boleto
+
+================================================================================
+SEÇÃO 11 — FLUXOS OPERACIONAIS DETALHADOS
+================================================================================
+
+----------------------------------------------------------------------
+11.1 — FLUXO: Atendimento Completo (Orçamento → OS → Conclusão)
+----------------------------------------------------------------------
+  1. Cliente chega na loja com equipamento com problema
+  2. Técnico acessa /orcamentos/novo
+  3. Busca cliente por telefone (ou cria novo)
+  4. Preenche dados do equipamento (tipo, marca, modelo)
+  5. Descreve o problema
+  6. Seleciona serviços padrão e/ou ajusta valores
+  7. Define forma de pagamento e parcelamento
+  8. Salva orçamento → POST /api/orcamentos → redirect /orcamentos/[id]
+  9. (Opcional) Exporta PDF ou PNG do orçamento e envia ao cliente
+  10. Cliente aprova → Técnico clica "Aprovar"
+  11. POST /api/orcamentos/[id] → Cria OrdemServico automaticamente
+  12. Técnico acessa /ordens/[id] da OS criada
+  13. Atribui técnico, atualiza diagnóstico e serviço executado
+  14. Muda status: aberta → em_andamento → concluida
+  15. Modal de pagamento aparece → confirma valor e forma
+  16. Backend cria Lancamento de entrada automaticamente
+  17. (Opcional) Exporta PDF/PNG da OS como comprovante
+
+----------------------------------------------------------------------
+11.2 — FLUXO: OS Direta (sem orçamento prévio)
+----------------------------------------------------------------------
+  1. Técnico acessa /ordens/nova
+  2. Busca/cria cliente
+  3. Preenche equipamento e problema
+  4. Atribui técnico e data de entrada
+  5. Define valor e forma de pagamento
+  6. POST /api/ordens → redirect /ordens/[id]
+  7. Acompanha status e conclui (mesmo fluxo dos passos 12-17 acima)
+
+----------------------------------------------------------------------
+11.3 — FLUXO: Registro de Despesa
+----------------------------------------------------------------------
+  1. Técnico/sócio acessa /financeiro, tab "Nova Despesa"
+  2. Preenche: descrição, categoria, valor, forma de pagamento, data
+  3. POST /api/financeiro com tipo: "saida"
+  4. Lançamento aparece na tab "Lançamentos" e afeta o saldo no "Resumo"
+
+----------------------------------------------------------------------
+11.4 — FLUXO: Retirada de Pró-labore
+----------------------------------------------------------------------
+  1. Sócio acessa /financeiro, tab "Pró-labore"
+  2. Sistema exibe faturamento da semana (soma de entradas)
+  3. Calcula valor de cada sócio: faturamento * percentual
+  4. Sócio clica "Retirar Pró-labore" no seu card
+  5. POST /api/financeiro com:
+     - tipo: "saida"
+     - categoria: "prolabore"
+     - descricao: "Pró-labore - {nomeSocio}"
+     - valor: valor calculado
+  6. Lançamento de saída é registrado
+
+----------------------------------------------------------------------
+11.5 — FLUXO: Abertura/Fechamento de Caixa
+----------------------------------------------------------------------
+  1. Sócio acessa /financeiro e vê status do caixa
+  2. Se não há caixa ativo → clica "Abrir Caixa"
+  3. Define saldo inicial (opcional)
+  4. POST /api/financeiro/caixa → desativa anteriores, cria novo
+  5. Caixa ativo aparece na sidebar
+  6. Para fechar → clica "Fechar Caixa"
+  7. POST /api/financeiro/caixa com { fechar: true }
+  8. Caixa é desativado, dataFim é registrada
+
+----------------------------------------------------------------------
+11.6 — FLUXO: Exportação PDF de OS
+----------------------------------------------------------------------
+  1. Técnico acessa /ordens/[id]
+  2. Clica "Exportar PDF"
+  3. Frontend faz GET /api/ordens/[id]/export
+  4. Backend:
+     a. Busca OS com cliente e técnico
+     b. Busca Configuracao (loadExportConfig)
+     c. Se logo existe no S3, converte para base64
+     d. buildOSHtml() gera HTML completo do documento
+     e. generatePdf() envia HTML para API Abacus HTML2PDF
+     f. Recebe PDF binário, retorna como Response com headers adequados
+  5. Browser baixa o arquivo PDF (ex: OS-42.pdf)
+
+----------------------------------------------------------------------
+11.7 — FLUXO: Exportação PNG de OS
+----------------------------------------------------------------------
+  1. Técnico acessa /ordens/[id]
+  2. Clica "Exportar PNG"
+  3. Frontend faz GET /api/ordens/[id]/export-png
+  4. Backend retorna { html, filename }
+  5. Frontend:
+     a. Cria div oculta no DOM
+     b. Injeta o HTML recebido
+     c. Usa html2canvas para converter div → canvas
+     d. Canvas → blob → download como PNG
+     e. Remove div oculta
+
+----------------------------------------------------------------------
+11.8 — FLUXO: Upload de Logo da Empresa
+----------------------------------------------------------------------
+  1. Sócio acessa /configuracoes, tab "Empresa"
+  2. Clica "Upload Logo"
+  3. Seleciona imagem (input type=file, accept=image/*)
+  4. Frontend:
+     a. POST /api/upload/presigned com { fileName, contentType, isPublic: true }
+     b. Recebe { uploadUrl, cloud_storage_path }
+     c. PUT para uploadUrl (S3 presigned) com arquivo
+     d. Salva URL pública no campo logoUrl
+     e. Salva cloud_storage_path no campo logoCloudPath
+  5. PUT /api/settings com { logoUrl, logoCloudPath }
+
+================================================================================
+SEÇÃO 12 — SISTEMA DE EXPORTAÇÃO (PDF/PNG)
+================================================================================
+
+ARQUIVOS ENVOLVIDOS:
+  - lib/os-html-builder.ts — Gerador de HTML para todos os documentos
+  - lib/export-helpers.ts — loadExportConfig(), generatePdf()
+  - Rotas: ordens/[id]/export, ordens/[id]/export-png,
+           orcamentos/[id]/export, orcamentos/[id]/export-png
+
+----------------------------------------------------------------------
+12.1 — lib/export-helpers.ts
+----------------------------------------------------------------------
+  loadExportConfig():
+    1. Busca Configuracao (findFirst)
+    2. Se logoUrl ou logoCloudPath existe:
+       a. Tenta buscar via getFileUrl do S3
+       b. Faz fetch da URL e converte para base64 (data:image/...)
+    3. Retorna { config: FullConfigData, logoBase64: string | null }
+
+  generatePdf(html: string, filename: string):
+    1. POST para process.env.HTML2PDF_API_URL
+    2. Body: { html, options: { format: 'A4', printBackground: true } }
+    3. Headers: Authorization: Bearer HTML2PDF_API_KEY
+    4. Recebe resposta com PDF (base64 ou buffer)
+    5. Retorna NextResponse com Content-Type: application/pdf
+       e Content-Disposition: attachment; filename={filename}.pdf
+
+----------------------------------------------------------------------
+12.2 — lib/os-html-builder.ts
+----------------------------------------------------------------------
+  FUNÇÕES EXPORTADAS:
+    - buildOSHtml(ordem, config?, logoBase64?) → HTML A4 para PDF de OS
+    - buildOSHtmlPng(ordem, config?) → HTML 800px para PNG de OS
+    - buildOrcamentoHtml(orc, config?, logoBase64?) → HTML A4 para PDF ORC
+    - buildOrcamentoHtmlPng(orc, config?) → HTML 800px para PNG ORC
+
+  FUNÇÕES INTERNAS:
+    - esc(s) — escape HTML (&, <, >, ")
+    - fmtDate(d) — formata data para pt-BR (dd/mm/aaaa)
+    - fmtCurrency(v) — formata R$ 0,00
+    - buildInfoLine(cfg) — monta linha de info (endereço, tel, etc.)
+    - buildTerms(cfg, fontSize) — monta bloco de termos/garantia
+    - row(label, value, fontSize) — linha flex com label e valor
+    - sectionTitle(text, accent, fontSize) — título de seção
+    - buildHeader(cfg, logoSrc, numberHtml, badgeHtml, sizes) — cabeçalho
+
+  INTERFACE FullConfigData:
+    Campos utilizados do Configuracao para exportação (ver seção 5.6)
+
+  MAPEAMENTOS:
+    statusLabels: aberta→Aberta, em_andamento→Em Andamento, etc.
+    statusColors: aberta→#3b82f6, em_andamento→#f59e0b, etc.
+    paymentLabels: dinheiro→Dinheiro, pix→PIX, etc.
+
+  ESTRUTURA DO PDF DE OS (A4):
+    ┌─────────────────────────────────────────────┐
+    │  [Logo] EMPRESA         [Prefixo] Número    │
+    │         Subtítulo       [Badge Status]       │
+    │         Info line                            │
+    ├─────────────────────────────────────────────┤
+    │  CLIENTE          │  EQUIPAMENTO             │
+    │  Nome, Tel, etc.  │  Tipo, Marca, Modelo     │
+    ├───────────────────┼──────────────────────────┤
+    │  FINANCEIRO       │  STATUS E DATAS          │
+    │  Forma pgto       │  Técnico, Entrada, etc.  │
+    │  VALOR TOTAL box  │                          │
+    ├─────────────────────────────────────────────┤
+    │  PROBLEMA / DIAGNÓSTICO / SERVIÇO           │
+    │  Problema relatado, Diagnóstico,            │
+    │  Serviço executado, Observações             │
+    ├─────────────────────────────────────────────┤
+    │  _______________    _______________          │
+    │  Assin. Cliente     Assin. Técnico           │
+    ├─────────────────────────────────────────────┤
+    │  TERMOS E GARANTIA                          │
+    │  * Garantia: X dias                         │
+    │  * Texto de garantia...                     │
+    │  * Texto de backup...                       │
+    └─────────────────────────────────────────────┘
+
+  ESTRUTURA DO PDF DE ORÇAMENTO (A4):
+    Similar ao OS, mas com:
+    - Seção "Produtos / Serviços" (lista parseada do JSON)
+    - Valor total, Valor PIX/à vista, Parcelamento
+    - Sem seção "Status e Datas" (usa data de criação)
+    - Sem assinatura de técnico (usa "Responsável")
+
+  DIFERENÇAS PDF vs PNG:
+    - PDF: A4, font-size 11px, @page margins, gerado server-side
+    - PNG: 800px width, font-size 13px, padding 30px, gerado client-side
+
+================================================================================
+SEÇÃO 13 — SISTEMA FINANCEIRO
+================================================================================
+
+O módulo financeiro é composto por:
+
+ENTIDADES:
+  1. Lancamento — registro de entrada ou saída financeira
+  2. ProLaboreConfig — configuração de divisão entre sócios
+  3. CaixaSemanal — controle de abertura/fechamento de caixa
+
+TIPOS DE LANÇAMENTO:
+  - tipo: "entrada"
+    - categoria "servico" → gerado automaticamente ao concluir OS
+    - Outras categorias de entrada não são implementadas (apenas via OS)
+
+  - tipo: "saida"
+    - categoria "despesa" → despesa manual (aluguel, energia, etc.)
+    - categoria "prolabore" → retirada de pró-labore
+
+CÁLCULO DO RESUMO:
+  - totalEntradas = SUM(valor) WHERE tipo = "entrada" AND data IN periodo
+  - totalSaidas = SUM(valor) WHERE tipo = "saida" AND data IN periodo
+  - saldo = totalEntradas - totalSaidas
+
+CÁLCULO DO PRÓ-LABORE:
+  - faturamentoSemanal = SUM(valor) WHERE tipo = "entrada"
+    AND data >= início da semana atual (segunda-feira)
+  - valorSocio1 = faturamentoSemanal * percentualSocio1 / 100
+  - valorSocio2 = faturamentoSemanal * percentualSocio2 / 100
+  - NOTA: Usa faturamento BRUTO (não desconta despesas)
+
+CATEGORIAS DE DESPESA (hardcoded no frontend):
+  "Aluguel", "Energia", "Internet", "Material", "Peças",
+  "Transporte", "Alimentação", "Outros"
+
+FORMAS DE PAGAMENTO:
+  "dinheiro", "pix", "cartao_debito", "cartao_credito",
+  "transferencia", "boleto"
+
+================================================================================
+SEÇÃO 14 — SISTEMA DE CONFIGURAÇÕES
+================================================================================
+
+TABELA: Configuracao (single-row)
+ENDPOINT: /api/settings (GET/PUT)
+PÁGINA: /configuracoes (4 tabs)
+
+Grupos de configuração:
+
+GRUPO 1 — DADOS DA EMPRESA:
+  - nomeEmpresa, subtituloEmpresa, logoUrl, logoCloudPath
+  - cnpj, telefone, whatsapp, email
+  - endereco, bairro, cidade, estado, cep
+  Uso: Exibido no cabeçalho de PDFs/PNGs exportados
+
+GRUPO 2 — CABEÇALHO DA OS:
+  - prefixoNumeroOS (padrão "OS")
+  - prefixoNumeroOrcamento (padrão "ORC")
+  - corCabecalho (padrão "#6c63ff" — roxo)
+  - posicaoLogo (esquerda/centro/direita)
+  - alinhamentoCabecalho (esquerda/centro/direita)
+  - textoCabecalho (texto complementar)
+  - exibirEndereco, exibirTelefone, exibirWhatsapp,
+    exibirEmail, exibirCnpj, exibirNumeroOSNoTopo (toggles boolean)
+  Uso: Controla layout do cabeçalho nos documentos exportados
+
+GRUPO 3 — TERMOS E GARANTIA:
+  - garantiaDias (padrão 90)
+  - textoGarantia, textoBackup, textoNaoRetirada, textoPerdaGarantia
+  - observacaoOS
+  Uso: Exibido no rodapé dos PDFs/PNGs
+
+GRUPO 4 — APARÊNCIA:
+  - tema ("escuro" ou "claro")
+  Uso: Define o tema visual do sistema inteiro
+
+================================================================================
+SEÇÃO 15 — CATÁLOGOS (MARCAS, MODELOS, SERVIÇOS PADRÃO)
+================================================================================
+
+----------------------------------------------------------------------
+15.1 — Marcas
+----------------------------------------------------------------------
+  CRUD completo via /api/marcas e /api/marcas/[id]
+  25 marcas pré-cadastradas via seed:
+    Dell, HP, Lenovo, ASUS, Acer, Samsung, Apple, LG, Positivo,
+    Vaio, Microsoft, Toshiba, Sony, Philco, Multilaser, Compaq,
+    Gateway, MSI, Huawei, Xiaomi, Motorola, Epson, Brother,
+    Canon, Lexmark
+
+  Relação: Marca 1:N Modelo (onDelete: Cascade)
+
+----------------------------------------------------------------------
+15.2 — Modelos
+----------------------------------------------------------------------
+  CRUD completo via /api/modelos e /api/modelos/[id]
+  Modelos são filhos de marcas.
+  Não há modelos pré-cadastrados no seed.
+  Usuários adicionam conforme necessidade.
+  Constraint: @@unique([nome, marcaId])
+
+----------------------------------------------------------------------
+15.3 — Serviços Padrão
+----------------------------------------------------------------------
+  CRUD completo via /api/servicos-padrao e /api/servicos-padrao/[id]
+  23 serviços pré-cadastrados via seed:
+
+  Nome                                      Valor (R$)
+  ─────────────────────────────────────────────────────
+  Formatação + Instalação Windows           120.00
+  Formatação + Instalação macOS             150.00
+  Instalação de SSD                          80.00
+  Troca de Tela Notebook                    280.00
+  Troca de Teclado Notebook                 180.00
+  Troca de Bateria Notebook                 150.00
+  Troca de Conector de Carga                120.00
+  Reparo em Placa-Mãe (BGA)                350.00
+  Limpeza Interna                            80.00
+  Troca de Pasta Térmica                     60.00
+  Troca de Cooler/Ventoinha                 100.00
+  Remoção de Vírus/Malware                   80.00
+  Backup de Dados                            70.00
+  Recuperação de Dados HD                   200.00
+  Recuperação de Dados SSD                  300.00
+  Instalação de Memória RAM                  50.00
+  Upgrade de HD para SSD                    100.00
+  Configuração de Rede/Wi-Fi                 60.00
+  Instalação de Impressora                   50.00
+  Manutenção de Impressora                  120.00
+  Instalação de Software Específico          40.00
+  Montagem de Desktop                       150.00
+  Diagnóstico Técnico                        50.00
+
+================================================================================
+SEÇÃO 16 — NOTIFICAÇÕES POR E-MAIL
+================================================================================
+
+INFRAESTRUTURA:
+  - API: Abacus AI Notification API
+  - Endpoint: process.env.NOTIFICATION_API_URL
+  - Auth: process.env.NOTIFICATION_API_KEY
+  - Arquivo: app/api/notificacao/route.ts
+
+TIPOS DE NOTIFICAÇÃO:
+  1. nova_os — Enviada quando uma nova OS é criada
+     - Destinatário: Admin
+     - Dados: número da OS, cliente, equipamento, problema
+
+  2. orcamento_aprovado — Enviada quando orçamento é aprovado
+     - Destinatário: Admin
+     - Dados: número do orçamento, cliente, equipamento, valor
+
+ACIONAMENTO:
+  - Na criação de OS (POST /api/ordens), após sucesso, chama /api/notificacao
+  - Na aprovação de orçamento (POST /api/orcamentos/[id]), idem
+  - Chamadas são fire-and-forget (não bloqueia resposta)
+
+VARIÁVEIS DE AMBIENTE NECESSÁRIAS:
+  - NOTIFICATION_API_URL
+  - NOTIFICATION_API_KEY
+  - NOTIF_ID_NOVA_OS (ID do tipo de notificação registrado)
+  - NOTIF_ID_ORCAMENTO_APROVADO (ID do tipo de notificação registrado)
+
+================================================================================
+SEÇÃO 17 — UPLOAD DE ARQUIVOS (S3/CLOUD STORAGE)
+================================================================================
+
+INFRAESTRUTURA:
+  - Serviço: AWS S3 (provisionado pela Abacus AI)
+  - SDK: @aws-sdk/client-s3, @aws-sdk/s3-request-presigner
+  - Arquivos: lib/aws-config.ts, lib/s3.ts
+
+CONFIGURAÇÃO (lib/aws-config.ts):
+  - getBucketConfig() → { bucketName, folderPrefix } do .env
+  - createS3Client() → new S3Client({})
+
+FUNÇÕES (lib/s3.ts):
+  - generatePresignedUploadUrl(fileName, contentType, isPublic)
+    → { uploadUrl, cloud_storage_path }
+  - getFileUrl(cloud_storage_path, isPublic)
+    → URL pública ou signed URL
+  - deleteFile(cloud_storage_path)
+
+USO ATUAL:
+  - Único uso: upload de logo da empresa (/configuracoes)
+  - Logo é pública (isPublic = true)
+  - cloud_storage_path salvo em Configuracao.logoCloudPath
+  - URL pública salva em Configuracao.logoUrl
+
+FLUXO:
+  1. Frontend POST /api/upload/presigned com { fileName, contentType }
+  2. Backend gera presigned URL via generatePresignedUploadUrl()
+  3. Frontend PUT direto ao S3 com presigned URL
+  4. Frontend salva URL pública no campo logoUrl via PUT /api/settings
+
+================================================================================
+SEÇÃO 18 — ESTILIZAÇÃO E TEMAS
+================================================================================
+
+FRAMEWORK CSS: Tailwind CSS 3.3.3
+
+ARQUIVO PRINCIPAL: app/globals.css
+
+SISTEMA DE TEMAS:
+  Implementado via CSS custom properties no seletor [data-theme].
+
+  Tema "escuro" (padrão):
+    --bg-primary:     #0f1117      (fundo principal)
+    --bg-secondary:   #1a1d2e      (cards, sidebar)
+    --bg-hover:       #252840      (hover)
+    --text-primary:   #e4e6f0      (texto principal)
+    --text-secondary: #8b8fa3      (texto secundário)
+    --border:         #2a2d42      (bordas)
+    --accent:         #2563eb      (cor de destaque — azul)
+    --accent-light:   #3b82f6      (destaque claro)
+
+  Tema "claro":
+    --bg-primary:     #f5f5f5
+    --bg-secondary:   #ffffff
+    --bg-hover:       #e8e8e8
+    --text-primary:   #1a1a2e
+    --text-secondary: #64748b
+    --border:         #e2e8f0
+    --accent:         #2563eb
+    --accent-light:   #3b82f6
+
+APLICAÇÃO DO TEMA:
+  - Sidebar lê config.tema via fetch('/api/settings')
+  - Aplica data-theme no document.documentElement
+  - Todas as classes Tailwind usam as variáveis: bg-bg-primary, text-text-primary, etc.
+
+TAILWIND CONFIG (tailwind.config.ts):
+  Extensões customizadas:
+    colors:
+      accent:         'var(--accent)'
+      accent-light:   'var(--accent-light)'
+      bg-primary:     'var(--bg-primary)'
+      bg-secondary:   'var(--bg-secondary)'
+      bg-hover:       'var(--bg-hover)'
+      text-primary:   'var(--text-primary)'
+      text-secondary: 'var(--text-secondary)'
+      border:         'var(--border)'
+
+NOTA SOBRE COR DO CABEÇALHO:
+  - Cor de destaque do SISTEMA (UI): #2563eb (azul)
+  - Cor de destaque do CABEÇALHO PDF: configurável, padrão #6c63ff (roxo)
+  - Estas cores são independentes — o tema da UI não afeta a cor do PDF
+
+ANIMAÇÕES:
+  - Framer Motion para transições de página e modais
+  - tailwindcss-animate para animações de entrada (fade, slide)
+  - Animação customizada: CountUp para números no dashboard
+
+================================================================================
+SEÇÃO 19 — VARIÁVEIS DE AMBIENTE
+================================================================================
+
+Arquivo: nextjs_space/.env
+
+BANCO DE DADOS:
+  DATABASE_URL="postgresql://...?schema=sistema_os_assistencia_dev&connection_limit=5&pool_timeout=10"
+  → PostgreSQL hospedado pela Abacus AI
+  → Schema: sistema_os_assistencia_dev
+  → Compartilhado entre dev e produção
+
+AUTENTICAÇÃO:
+  NEXTAUTH_SECRET="..."
+  → Segredo para assinatura do JWT
+  → NEXTAUTH_URL é configurado automaticamente pela Abacus AI
+
+CLOUD STORAGE (S3):
+  AWS_BUCKET_NAME="..."
+  AWS_FOLDER_PREFIX="..."
+  AWS_REGION="..."
+  → Configurados automaticamente pela plataforma
+  → Credenciais AWS são injetadas via IAM role (sem chave explícita)
+
+GERAÇÃO DE PDF:
+  HTML2PDF_API_URL="..."
+  HTML2PDF_API_KEY="..."
+  → API Abacus AI para converter HTML em PDF via Playwright
+
+NOTIFICAÇÕES:
+  NOTIFICATION_API_URL="..."
+  NOTIFICATION_API_KEY="..."
+  NOTIF_ID_NOVA_OS="..."
+  NOTIF_ID_ORCAMENTO_APROVADO="..."
+  → API Abacus AI para envio de e-mails
+
+================================================================================
+SEÇÃO 20 — SCRIPTS DE SEED E DADOS INICIAIS
+================================================================================
+
+----------------------------------------------------------------------
+20.1 — scripts/seed.ts
+----------------------------------------------------------------------
+  Função: Popula o banco com dados iniciais
+
+  DADOS INSERIDOS (upsert para evitar duplicatas):
+
+  1. USUÁRIOS (3):
+     - VITORDRT (admin) — email e senha hasheada
+     - DIEGODRT (admin) — email e senha hasheada
+     - john@doe.com (teste) — email: john@doe.com, senha: johndoe123
+
+  2. MARCAS (25):
+     Dell, HP, Lenovo, ASUS, Acer, Samsung, Apple, LG, Positivo,
+     Vaio, Microsoft, Toshiba, Sony, Philco, Multilaser, Compaq,
+     Gateway, MSI, Huawei, Xiaomi, Motorola, Epson, Brother,
+     Canon, Lexmark
+
+  3. SERVIÇOS PADRÃO (23):
+     (Ver lista completa na seção 15.3)
+
+  4. CONFIGURAÇÃO INICIAL:
+     - nomeEmpresa: "DRT Informática"
+     - subtituloEmpresa: "Assistência Técnica | Notebooks & Desktops"
+     - tema: "escuro"
+     - garantiaDias: 90
+     - prefixoNumeroOS: "OS"
+     - prefixoNumeroOrcamento: "ORC"
+     - corCabecalho: "#6c63ff"
+     - Textos padrão de termos/garantia/backup/não-retirada/perda
+
+  5. PRÓ-LABORE CONFIG:
+     - nomeSocio1: "VITORDRT"
+     - nomeSocio2: "DIEGODRT"
+     - percentualSocio1: 50
+     - percentualSocio2: 50
+
+----------------------------------------------------------------------
+20.2 — scripts/safe-seed.ts
+----------------------------------------------------------------------
+  Função: Wrapper de segurança para executar seed.ts
+
+  Lógica:
+    1. Lê o conteúdo de scripts/seed.ts
+    2. Verifica se contém chamadas proibidas:
+       - prisma.*.delete()
+       - prisma.*.deleteMany()
+    3. Se encontrar → aborta com erro (exit 1)
+    4. Se OK → executa: tsx --require dotenv/config scripts/seed.ts
+
+  Motivo: Proteger dados de produção contra exclusão acidental
+          (banco é compartilhado entre dev e prod)
+
+================================================================================
+SEÇÃO 21 — DEPLOYMENT E INFRAESTRUTURA
+================================================================================
+
+PLATAFORMA: Abacus AI (DeepAgent)
+DOMÍNIO: drtinfo.abacusai.app
+TIPO: Next.js Standalone Build
+
+PROCESSO DE BUILD:
+  1. Symlink de node_modules e yarn.lock para /opt/hostedapp/node/root/app/
+  2. yarn install && yarn prisma generate
+  3. rsync do código para diretório de build
+  4. NODE_OPTIONS="--max-old-space-size=6144" yarn run build
+  5. Output: .build/standalone (Next.js standalone mode)
+  6. Empacotamento: tar czf app.tgz .build/standalone
+
+PRODUÇÃO:
+  - Servidor Next.js standalone (sem dependência de node_modules)
+  - Variáveis de ambiente carregadas do .env
+  - NEXTAUTH_URL configurado automaticamente para o domínio de produção
+  - Banco de dados compartilhado com desenvolvimento
+
+LIMITAÇÕES DO AMBIENTE DE PRODUÇÃO:
+  - Não possui ferramentas de sistema (python, ffmpeg, etc.)
+  - Não possui Playwright/Puppeteer (PDF via API externa)
+  - Paths devem ser relativos (diretório muda no deploy)
+  - Apenas dependências do package.json estão disponíveis
+
+INFRAESTRUTURA DE SERVIÇOS:
+  - PostgreSQL: Hospedado pela Abacus AI (tier gratuito)
+  - S3: Provisionado pela Abacus AI (para uploads)
+  - PDF API: Abacus AI HTML-to-PDF (Playwright remoto)
+  - E-mail API: Abacus AI Notification API
+  - Nenhum serviço externo é necessário além dos acima
+
+================================================================================
+SEÇÃO 22 — GUIA DE MIGRAÇÃO E RECONSTRUÇÃO
+================================================================================
+
+Este guia permite reconstruir o sistema completo a partir desta documentação.
+
+----------------------------------------------------------------------
+22.1 — PRÉ-REQUISITOS
+----------------------------------------------------------------------
+  - Node.js 18+ com yarn
+  - PostgreSQL 14+
+  - Conta AWS S3 (ou equivalente para uploads)
+  - Serviço de geração de PDF (Playwright, Puppeteer, ou API equivalente)
+  - Serviço de e-mail (SendGrid, Resend, ou equivalente)
+
+----------------------------------------------------------------------
+22.2 — PASSO 1: INICIALIZAÇÃO DO PROJETO
+----------------------------------------------------------------------
+  1. Criar projeto Next.js 14 com App Router:
+     npx create-next-app@14 --typescript --tailwind --app --src-dir=false
+
+  2. Instalar dependências principais:
+     yarn add prisma @prisma/client next-auth @next-auth/prisma-adapter
+     yarn add bcryptjs framer-motion lucide-react recharts
+     yarn add @aws-sdk/client-s3 @aws-sdk/s3-request-presigner
+     yarn add date-fns tailwind-merge class-variance-authority clsx
+
+----------------------------------------------------------------------
+22.3 — PASSO 2: BANCO DE DADOS
+----------------------------------------------------------------------
+  1. Criar arquivo prisma/schema.prisma conforme seção 5
+  2. Definir DATABASE_URL no .env
+  3. Executar: npx prisma migrate dev --name init
+  4. Criar scripts/seed.ts conforme seção 20.1
+  5. Executar: npx prisma db seed
+
+----------------------------------------------------------------------
+22.4 — PASSO 3: AUTENTICAÇÃO
+----------------------------------------------------------------------
+  1. Criar lib/auth.ts conforme seção 6
+  2. Criar app/api/auth/[...nextauth]/route.ts
+  3. Criar app/api/signup/route.ts
+  4. Criar app/providers.tsx com SessionProvider
+  5. Criar app/login/page.tsx conforme seção 8.1
+  6. Definir NEXTAUTH_SECRET no .env
+
+----------------------------------------------------------------------
+22.5 — PASSO 4: LAYOUT E NAVEGAÇÃO
+----------------------------------------------------------------------
+  1. Criar app/globals.css com variáveis de tema (seção 18)
+  2. Configurar tailwind.config.ts com cores customizadas (seção 18)
+  3. Criar app/layout.tsx com providers e meta tags
+  4. Criar app/(dashboard)/layout.tsx com Sidebar
+  5. Criar components/sidebar.tsx conforme seção 9.1
+  6. Criar componentes auxiliares: modal, status-badge, count-up
+
+----------------------------------------------------------------------
+22.6 — PASSO 5: MÓDULOS (ORDEM DE IMPLEMENTAÇÃO)
+----------------------------------------------------------------------
+  Implementar na seguinte ordem para respeitar dependências:
+
+  1. Configurações (/configuracoes + /api/settings)
+     → Base para todo o sistema (nome da empresa, tema, etc.)
+
+  2. Catálogos (/api/marcas, /api/modelos, /api/servicos-padrao)
+     → Necessários para formulários de OS e Orçamento
+
+  3. Clientes (/clientes + /api/clientes)
+     → Necessário para OS e Orçamentos
+
+  4. Orçamentos (/orcamentos + /api/orcamentos)
+     → Inclui criação, listagem, detalhes, aprovação
+
+  5. Ordens de Serviço (/ordens + /api/ordens)
+     → Inclui criação, listagem, detalhes, mudança de status
+
+  6. Financeiro (/financeiro + /api/financeiro)
+     → Depende de OS (lançamentos automáticos)
+     → Inclui resumo, lançamentos, despesas, pró-labore, caixa
+
+  7. Dashboard (/dashboard + /api/dashboard)
+     → Agregação de dados de todos os módulos
+
+  8. Relatórios (/relatorios + /api/relatorios)
+     → Similar ao dashboard, com mais filtros
+
+  9. Exportação (PDF/PNG)
+     → lib/os-html-builder.ts + lib/export-helpers.ts
+     → Rotas de export nas OS e Orçamentos
+
+  10. Upload de Logo (S3)
+      → lib/s3.ts + lib/aws-config.ts + /api/upload/presigned
+
+  11. Notificações (E-mail)
+      → /api/notificacao + integração nos fluxos de OS e Orçamento
+
+----------------------------------------------------------------------
+22.7 — PASSO 6: CONFIGURAÇÃO DE SERVIÇOS EXTERNOS
+----------------------------------------------------------------------
+  Para cada serviço, configurar variáveis de ambiente:
+
+  S3 (Cloud Storage):
+    AWS_BUCKET_NAME, AWS_FOLDER_PREFIX, AWS_REGION
+    (credenciais via IAM role ou AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY)
+
+  PDF API:
+    HTML2PDF_API_URL, HTML2PDF_API_KEY
+    (ou substituir por Puppeteer/Playwright local se disponível)
+
+  E-mail:
+    NOTIFICATION_API_URL, NOTIFICATION_API_KEY
+    (ou substituir por SendGrid/Resend/SES)
+
+----------------------------------------------------------------------
+22.8 — PASSO 7: DEPLOY
+----------------------------------------------------------------------
+  1. Configurar variáveis de ambiente no host de produção
+  2. Build: yarn build (standalone output)
+  3. Start: node .next/standalone/server.js
+  4. Ou deploy em plataforma como Vercel, Railway, etc.
+
+----------------------------------------------------------------------
+22.9 — PONTOS DE ATENÇÃO NA MIGRAÇÃO
+----------------------------------------------------------------------
+  1. O campo "servicos" em Orcamento é JSON string, não relação
+  2. Números de OS e ORC são autoincrement separados
+  3. Configuracao e ProLaboreConfig são single-row (findFirst/upsert)
+  4. Tema é aplicado via data-theme no <html>, não via next-themes
+  5. PDF usa cor configurável (#6c63ff), diferente do accent da UI (#2563eb)
+  6. Login usa apenas Credentials Provider (sem OAuth/SSO)
+  7. Todas as rotas API verificam sessão (exceto auth)
+  8. Banco é compartilhado dev/prod — cuidado com migrações destrutivas
+  9. safe-seed.ts bloqueia delete/deleteMany no seed
+  10. Logo upload vai via presigned URL direto ao S3 (não passa pelo server)
+  11. PNG é gerado client-side (html2canvas), PDF é server-side (API)
+  12. Pró-labore calcula sobre faturamento bruto (não saldo)
+  13. Lançamento de entrada é criado automaticamente ao concluir OS
+
+----------------------------------------------------------------------
+22.10 — DEPENDÊNCIAS CRÍTICAS E VERSÕES
+----------------------------------------------------------------------
+  next: 14.2.28     ← versão específica, não usar 15.x sem teste
+  react: 18.2.0     ← não usar 19.x sem adaptação
+  prisma: 6.7.0     ← schema usa features compatíveis
+  next-auth: 4.24.11 ← v4, não v5 (beta)
+  typescript: 5.2.2
+  tailwindcss: 3.3.3 ← v3, não v4
+
+================================================================================
+FIM DA DOCUMENTAÇÃO
+================================================================================
+
+Documento gerado automaticamente pela análise completa do código-fonte.
+Projeto: DRT Informática — Sistema de OS
+Data: 25/03/2026
+Linhas de código analisadas: ~8.000+
+Modelos de banco: 12
+Rotas de API: 30
+Páginas: 14 (13 dashboard + login)
+Componentes: 5 compartilhados + ~40 shadcn/ui

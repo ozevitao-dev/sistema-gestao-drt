@@ -1,0 +1,601 @@
+Atue como um Arquiteto de Software Sênior, Analista de Sistemas Sênior, Engenheiro de Documentação Técnica e Especialista em Migração de Projetos entre plataformas e LLMs.
+
+Sua tarefa é realizar uma VARREDURA COMPLETA, PROFUNDA E ESTRUTURADA em todo o meu projeto atual dentro da Abacus e gerar uma DOCUMENTAÇÃO TÉCNICA INTEGRAL em TEXTO PURO, consolidada em UM ÚNICO ARQUIVO `.txt`, com o máximo de detalhes possível, de modo que esse material sirva como FONTE OFICIAL DE CONTINUIDADE, MANUTENÇÃO, MIGRAÇÃO, RECONSTRUÇÃO E PORTABILIDADE do sistema em qualquer outro ambiente, framework, plataforma, equipe de desenvolvimento ou outra LLM no futuro.
+
+O objetivo é que esse arquivo seja completo o suficiente para que, mesmo sem acesso ao contexto interno da Abacus, qualquer desenvolvedor, equipe técnica ou inteligência artificial consiga entender como o sistema foi concebido, como ele funciona hoje, quais são suas regras, suas dependências, sua estrutura de dados, seus fluxos operacionais, suas telas, seus componentes, seus módulos, suas integrações e o que ainda falta concluir.
+
+IMPORTANTE:
+- Não entregue resumo superficial.
+- Não simplifique excessivamente.
+- Não omita partes por achar óbvias.
+- Não reduza a documentação a tópicos genéricos.
+- Não deixe nenhuma área do projeto sem análise.
+- Se necessário, percorra todo o projeto internamente antes de gerar a documentação final.
+- Se alguma informação não estiver explicitamente visível, faça inferência técnica responsável com base na estrutura existente e marque claramente como “inferido”.
+- O resultado final deve ser um conteúdo altamente técnico, detalhado, organizado, legível e pronto para ser salvo como um arquivo `.txt`.
+
+A DOCUMENTAÇÃO DEVE CONTER, OBRIGATORIAMENTE, AS SEÇÕES ABAIXO:
+
+======================================================================
+1. IDENTIFICAÇÃO GERAL DO PROJETO
+======================================================================
+
+Documente:
+- nome do sistema
+- propósito principal
+- tipo de sistema
+- problema que resolve
+- público-alvo
+- contexto operacional de uso
+- objetivo macro do projeto
+- escopo funcional atual
+- escopo funcional planejado
+- resumo executivo do sistema
+- visão geral de alto nível da operação
+
+Explique o sistema de forma técnica e também funcional, deixando claro:
+- o que ele faz
+- para quem foi criado
+- quais processos ele centraliza
+- quais ganhos operacionais ele entrega
+
+======================================================================
+2. RESUMO ARQUITETURAL DO SISTEMA
+======================================================================
+
+Explique em profundidade:
+- arquitetura geral do projeto
+- separação entre frontend, backend e banco de dados, se houver
+- estrutura lógica do sistema
+- organização dos módulos
+- forma como os dados circulam
+- padrão arquitetural identificado
+- responsabilidades de cada camada
+- dependências entre módulos
+- acoplamentos existentes
+- pontos centrais da aplicação
+- fluxo global entre cadastro, operação, faturamento e relatórios
+
+Se houver ausência de separação formal entre camadas, documente isso claramente.
+
+======================================================================
+3. MAPEAMENTO COMPLETO DA ESTRUTURA DO PROJETO
+======================================================================
+
+Documente tudo que compõe o projeto:
+- páginas
+- telas
+- rotas
+- componentes
+- modais
+- formulários
+- tabelas
+- serviços
+- funções
+- hooks
+- utilitários
+- controllers
+- models
+- schemas
+- consultas
+- mutations
+- validações
+- arquivos de configuração
+- integrações
+- mecanismos de exportação
+- estruturas de persistência
+- qualquer outro bloco técnico existente
+
+Para cada item identificado, informar:
+- nome
+- tipo
+- finalidade
+- local de uso
+- relação com outras partes do sistema
+- impacto funcional
+
+======================================================================
+4. INVENTÁRIO COMPLETO DE TELAS E ROTAS
+======================================================================
+
+Para CADA tela do sistema, documentar detalhadamente:
+- nome da tela
+- rota ou caminho
+- objetivo da tela
+- descrição funcional
+- perfil de uso
+- elementos visuais presentes
+- campos existentes
+- botões disponíveis
+- tabelas ou listas exibidas
+- filtros
+- ações acionáveis
+- regras de navegação
+- validações aplicadas
+- dependência de dados
+- origem dos dados exibidos
+- destino dos dados enviados
+- mensagens de erro
+- feedbacks ao usuário
+- integrações com outros módulos
+- consequências de cada ação disponível na interface
+
+Não resuma. Quero cobertura total de cada tela.
+
+======================================================================
+5. DOCUMENTAÇÃO COMPLETA DOS MÓDULOS
+======================================================================
+
+Quero todos os módulos do sistema documentados em profundidade, incluindo no mínimo, se existirem:
+- Dashboard
+- Clientes
+- Equipamentos
+- Orçamentos
+- Ordens de Serviço
+- Financeiro
+- Relatórios
+- Produtos
+- Serviços
+- Configurações
+- Usuários
+- Autenticação
+- Exportações
+- Qualquer outro módulo identificado
+
+Para cada módulo, documentar:
+- nome
+- objetivo
+- responsabilidade dentro do sistema
+- fluxo interno
+- entradas
+- saídas
+- entidades envolvidas
+- regras de negócio
+- validações
+- dependências
+- pontos de integração
+- impacto operacional
+- estados possíveis
+- restrições
+- comportamento esperado
+- comportamento atual observado
+- limitações do módulo
+- melhorias possíveis
+
+======================================================================
+6. MODELAGEM E ESTRUTURA COMPLETA DO BANCO DE DADOS
+======================================================================
+
+Quero a documentação mais completa possível de toda a persistência de dados do projeto.
+
+Se houver banco relacional, documente:
+- tabelas
+- colunas
+- tipos
+- constraints
+- chaves primárias
+- chaves estrangeiras
+- índices
+- relacionamentos
+- regras de integridade
+- valores padrão
+- nulabilidade
+- campos calculados
+- campos obrigatórios
+- campos opcionais
+
+Se houver banco não relacional, documente:
+- collections
+- documentos
+- schemas
+- campos
+- estrutura dos objetos
+- relacionamento lógico entre documentos
+
+Se houver armazenamento híbrido, documente ambos.
+
+Para cada entidade/tabela/collection/schema, quero:
+- nome técnico
+- finalidade
+- descrição funcional
+- lista completa dos campos
+- tipo de dado de cada campo
+- finalidade de cada campo
+- origem de preenchimento de cada campo
+- regras de atualização
+- dependência com outras entidades
+- impacto no fluxo operacional
+
+======================================================================
+7. RELACIONAMENTO ENTRE ENTIDADES
+======================================================================
+
+Explique detalhadamente como as entidades do sistema se relacionam.
+
+Descreva relações como, por exemplo:
+- cliente ↔ equipamento
+- cliente ↔ orçamento
+- cliente ↔ ordem de serviço
+- orçamento ↔ itens
+- orçamento ↔ aprovação
+- orçamento ↔ OS
+- OS ↔ equipamento
+- OS ↔ cliente
+- OS ↔ faturamento
+- financeiro ↔ entradas
+- financeiro ↔ saídas
+- financeiro ↔ contas pendentes
+- financeiro ↔ pró-labore
+- produtos ↔ orçamento
+- serviços ↔ orçamento
+- serviços ↔ OS
+
+Para cada relacionamento, explicar:
+- tipo de relação
+- dependência funcional
+- dependência de dados
+- gatilhos de criação
+- gatilhos de atualização
+- impactos quando um registro muda de estado
+- impactos quando um registro é removido ou cancelado
+
+======================================================================
+8. REGRAS DE NEGÓCIO COMPLETAS
+======================================================================
+
+Documente todas as regras de negócio identificáveis no projeto.
+
+Quero detalhamento de regras como:
+- criação de cliente
+- cadastro de equipamento
+- vínculo entre cliente e equipamento
+- criação de orçamento
+- edição de orçamento
+- exportação de orçamento
+- status do orçamento
+- aprovação de orçamento
+- cancelamento de orçamento
+- conversão de orçamento em OS
+- abertura da ordem de serviço
+- andamento da OS
+- finalização da OS
+- abertura do faturamento ao concluir a OS
+- registro de forma de pagamento
+- status de pagamento
+- lançamento automático no financeiro
+- tratamento de pagamentos pendentes
+- controle de entradas e saídas
+- cálculo de saldo
+- cálculo de lucro
+- cálculo de caixa
+- cálculo de pró-labore dos sócios
+- tratamento de despesas
+- relatórios por período
+- exportações de documentos
+- qualquer automação ou preenchimento automático
+
+Para cada regra, explicar:
+- objetivo
+- quando acontece
+- condição de disparo
+- validações envolvidas
+- dados necessários
+- resultado esperado
+- impacto em outros módulos
+
+======================================================================
+9. FLUXOS OPERACIONAIS PASSO A PASSO
+======================================================================
+
+Descreva passo a passo, em sequência lógica, os principais fluxos do sistema.
+
+Quero no mínimo os fluxos:
+- cadastro de cliente
+- cadastro de equipamento
+- associação do equipamento ao cliente
+- criação de orçamento
+- inclusão de itens/serviços no orçamento
+- exportação do orçamento
+- aprovação do orçamento
+- cancelamento do orçamento
+- transformação do orçamento em ordem de serviço
+- execução da ordem de serviço
+- atualização de status da OS
+- conclusão da OS
+- abertura automática da etapa de faturamento
+- lançamento do pagamento
+- envio automático ao relatório financeiro
+- registro de despesas
+- fechamento financeiro
+- consulta de relatórios
+- cálculo de pró-labore
+- fluxo de caixa consolidado
+
+Cada fluxo deve conter:
+- ponto de entrada
+- pré-requisitos
+- ações do usuário
+- ações automáticas do sistema
+- dados gerados
+- dados atualizados
+- estados de transição
+- exceções possíveis
+- resultado final
+
+======================================================================
+10. COMPONENTES, FUNÇÕES, SERVIÇOS E LÓGICAS INTERNAS
+======================================================================
+
+Faça um inventário técnico detalhado de toda lógica interna do sistema.
+
+Para cada componente/função/serviço/hook/controller/utilitário identificado, documentar:
+- nome
+- tipo
+- finalidade
+- onde é chamado
+- quais parâmetros recebe
+- quais dados processa
+- quais dados retorna
+- efeitos colaterais
+- dependências internas
+- impacto funcional
+- riscos ou limitações
+
+Quero que essa seção ajude outra IA ou outro desenvolvedor a localizar rapidamente a lógica do sistema.
+
+======================================================================
+11. FORMULÁRIOS, CAMPOS E VALIDAÇÕES
+======================================================================
+
+Mapeie todos os formulários existentes no sistema.
+
+Para cada formulário, documente:
+- nome
+- tela onde aparece
+- objetivo
+- campos existentes
+- tipo de campo
+- obrigatoriedade
+- valor padrão
+- máscara, se houver
+- validações
+- mensagens de erro
+- dependências entre campos
+- comportamento ao salvar
+- comportamento ao editar
+- comportamento ao cancelar
+- destino dos dados enviados
+
+======================================================================
+12. DASHBOARDS, RELATÓRIOS E MÉTRICAS
+======================================================================
+
+Documente completamente o módulo de relatórios e indicadores.
+
+Para cada dashboard/relatório, informar:
+- nome
+- objetivo
+- origem dos dados
+- filtros disponíveis
+- período suportado
+- cálculos aplicados
+- regras matemáticas utilizadas
+- agrupamentos
+- indicadores exibidos
+- limitações conhecidas
+- possibilidade de exportação
+- formato de exportação
+- dependência com outros módulos
+
+Quero detalhamento específico de:
+- entradas
+- saídas
+- saldo
+- lucro bruto
+- lucro líquido
+- capital em caixa
+- contas a receber
+- contas a pagar
+- fluxo de caixa
+- pró-labore
+- balanço por período
+
+======================================================================
+13. EXPORTAÇÕES E GERAÇÃO DE DOCUMENTOS
+======================================================================
+
+Documente tudo relacionado à geração de arquivos.
+
+Quero saber:
+- quais documentos podem ser exportados
+- em quais formatos
+- quais dados entram em cada exportação
+- como esses dados são montados
+- qual componente ou função gera a exportação
+- limitações atuais
+- dependências de layout
+- padrões visuais usados
+- possibilidade de PDF
+- possibilidade de PNG
+- qualquer outro formato suportado
+
+Se houver geração de:
+- orçamento
+- OS
+- relatórios
+- comprovantes
+- resumos financeiros
+
+documente tudo separadamente.
+
+======================================================================
+14. TECNOLOGIAS, FRAMEWORKS, BIBLIOTECAS E DEPENDÊNCIAS
+======================================================================
+
+Faça um inventário técnico completo de:
+- linguagem principal
+- framework principal
+- bibliotecas de interface
+- bibliotecas de estado
+- bibliotecas de formulário
+- bibliotecas de validação
+- bibliotecas de exportação
+- bibliotecas de banco
+- serviços externos
+- APIs
+- plugins
+- ferramentas de build
+- ambiente de execução
+
+Para cada dependência identificada:
+- nome
+- finalidade
+- onde é usada
+- importância no projeto
+- dependência crítica ou não crítica
+
+======================================================================
+15. PADRÕES DE DESENVOLVIMENTO E ORGANIZAÇÃO
+======================================================================
+
+Documente padrões identificados no projeto, como:
+- padrão de nomenclatura
+- padrão de componentes
+- padrão de formulários
+- padrão de modais
+- padrão de listagem
+- padrão de tabelas
+- padrão de mensagens
+- padrão de exportação
+- padrão de organização de arquivos
+- padrão de separação de responsabilidade
+- padrão de estados
+- padrão de persistência
+- padrão de feedback visual
+- padrão de UX
+
+Se houver inconsistências, documente também.
+
+======================================================================
+16. FUNCIONALIDADES IMPLEMENTADAS
+======================================================================
+
+Liste tudo que já está pronto no sistema, por módulo, de forma clara e objetiva.
+
+Para cada funcionalidade pronta, informar:
+- nome
+- módulo
+- descrição
+- status
+- observações relevantes
+
+======================================================================
+17. FUNCIONALIDADES PARCIAIS, INCOMPLETAS OU PENDENTES
+======================================================================
+
+Liste tudo que:
+- está parcialmente implementado
+- ainda não foi finalizado
+- precisa de correção
+- foi planejado e não construído
+- existe só em parte da interface
+- existe sem regra de negócio completa
+- existe sem persistência adequada
+- existe sem integração total
+
+Para cada item:
+- nome
+- status atual
+- o que falta
+- impacto dessa pendência
+- prioridade técnica sugerida
+
+======================================================================
+18. BUGS, LIMITAÇÕES E RISCOS TÉCNICOS
+======================================================================
+
+Documente:
+- bugs identificados
+- comportamentos inconsistentes
+- limitações funcionais
+- limitações estruturais
+- gargalos
+- riscos de manutenção
+- pontos frágeis
+- dependências sensíveis
+- riscos de perda de contexto
+- riscos em migração futura
+
+Quero uma visão honesta e técnica.
+
+======================================================================
+19. MELHORIAS E RECOMENDAÇÕES FUTURAS
+======================================================================
+
+Crie uma seção técnica com recomendações de evolução do projeto, incluindo:
+- refatorações importantes
+- melhorias de arquitetura
+- melhorias de modelagem de dados
+- melhorias de UX/UI
+- melhorias de performance
+- melhorias de escalabilidade
+- melhorias de segurança
+- melhorias de consistência
+- melhorias no financeiro
+- melhorias na conversão orçamento → OS
+- melhorias em exportação
+- melhorias em rastreabilidade operacional
+
+======================================================================
+20. GUIA DE MIGRAÇÃO E RECONSTRUÇÃO EM OUTRA LLM OU OUTRA PLATAFORMA
+======================================================================
+
+Esta seção é crítica.
+
+Quero um guia prático e técnico explicando como outra IA, outro desenvolvedor ou outra plataforma deve usar essa documentação para reconstruir o sistema.
+
+Documente:
+- como interpretar a estrutura atual
+- quais partes são centrais
+- ordem ideal de recriação dos módulos
+- ordem ideal de recriação do banco de dados
+- quais fluxos devem ser implementados primeiro
+- quais dependências precisam existir antes de outras
+- quais módulos são núcleo do sistema
+- quais dados são indispensáveis
+- como garantir continuidade funcional
+- como evitar perda de regras de negócio
+- o que deve ser preservado obrigatoriamente
+- pontos críticos para uma migração bem-sucedida
+
+======================================================================
+21. FORMATO OBRIGATÓRIO DA SAÍDA
+======================================================================
+
+A saída final deve obedecer rigorosamente estas regras:
+
+- Entregar tudo em TEXTO PURO
+- Organizar com títulos e subtítulos claros
+- Usar separadores visuais
+- Não fragmentar em respostas curtas
+- Não resumir demais
+- Não esconder partes importantes
+- Não omitir tabelas, relações, funções, regras ou fluxos
+- Produzir um conteúdo contínuo, técnico e profissional
+- Gerar conteúdo pronto para copiar e salvar como:
+  `documentacao_completa_projeto.txt`
+
+======================================================================
+22. INSTRUÇÃO FINAL DE EXECUÇÃO
+======================================================================
+
+Antes de gerar a resposta final:
+1. Analise todo o projeto com profundidade.
+2. Percorra o máximo possível da estrutura disponível.
+3. Identifique módulos, telas, regras, banco, fluxos e dependências.
+4. Cruze as informações para evitar lacunas.
+5. Só então gere a documentação consolidada.
+
+A resposta final deve ser a documentação completa, integral e consolidada do projeto, sem introduções desnecessárias, sem desculpas e sem superficialidade.
+
+Quero uma documentação-mãe do sistema, com profundidade máxima, cobertura total e qualidade suficiente para servir como base oficial de continuidade, manutenção e migração futura.

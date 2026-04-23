@@ -1,0 +1,269 @@
+Quero alterar e simplificar meu sistema atual de assistência técnica, mantendo a base já existente, porém deixando o fluxo muito mais rápido, prático e limpo para gerar ORÇAMENTO e ORDEM DE SERVIÇO.
+
+IMPORTANTE:
+Não recrie o sistema do zero. Trabalhe em cima do sistema atual e faça apenas as alterações necessárias.
+
+OBJETIVO:
+Quero um sistema mais ágil para uso no balcão, com visual profissional, impressão correta em A4, orçamento rápido para aprovação do cliente e OS simples de preencher.
+
+ALTERAÇÕES PRINCIPAIS:
+
+1. ORÇAMENTO MAIS SIMPLES E RÁPIDO
+- Criar um modelo padrão de orçamento para aprovação
+- Permitir exportar ORÇAMENTO em PDF
+- Permitir exportar ORÇAMENTO em PNG
+- O orçamento deve ter layout limpo, profissional e fácil de entender pelo cliente
+- Remover checklist técnico e avarias do ORÇAMENTO
+- O orçamento deve focar em:
+  - Cabeçalho da empresa
+  - Número do orçamento
+  - Data
+  - Dados do cliente
+  - Dados do equipamento
+  - Serviço/reparo
+  - Peças
+  - Valor
+  - Formas de pagamento
+  - Condições de parcelamento
+  - Observações
+  - Botão para aprovação
+
+2. ORDEM DE SERVIÇO MAIS LIMPA
+- Remover checklist técnico e avarias da ORDEM DE SERVIÇO também
+- Quero uma OS mais objetiva, clara e rápida de preencher
+- A OS deve conter somente:
+  - Cabeçalho da empresa
+  - Número da OS
+  - Data de entrada
+  - Data prevista
+  - Data de retirada
+  - Status
+  - Dados do cliente
+  - Dados do equipamento
+  - Problema relatado
+  - Diagnóstico técnico
+  - Serviço executado
+  - Valor
+  - Formas de pagamento
+  - Condições de parcelamento
+  - Observações
+  - Termos e garantia
+  - Assinatura do cliente
+  - Assinatura do técnico/responsável
+
+3. CADASTRO RÁPIDO DE EQUIPAMENTOS NO ORÇAMENTO
+No orçamento, ao abrir a tela, quero campos pré-definidos para agilizar o preenchimento.
+
+Criar banco de dados pré-cadastrado de tipos e marcas:
+- Notebook
+- Desktop
+
+Marcas pré-cadastradas:
+- Dell
+- Acer
+- Samsung
+- HP
+- Lenovo
+- Asus
+- Positivo
+- Vaio
+- Apple
+- Avell
+- LG
+- Toshiba
+- Sony
+- Compaq
+- Gigabyte
+- MSI
+- Multilaser
+- Philco
+- Gateway
+- Alienware
+- Huawei
+- Xiaomi
+- Microsoft
+- Razer
+- Outros
+
+IMPORTANTE:
+Não incluir impressora, monitor, all in one, mini PC ou outros segmentos fora do foco principal.
+O sistema deve ser voltado apenas para notebooks e desktops.
+
+4. MODELOS PRÉ-CADASTRADOS
+Criar estrutura de banco de dados para modelos por marca.
+Cadastrar o maior número possível de modelos populares de notebooks e desktops para cada marca.
+
+Exemplos:
+- Dell Inspiron
+- Dell Vostro
+- Dell Latitude
+- Dell G15
+- Dell XPS
+- Acer Aspire
+- Acer Nitro
+- Acer Predator
+- Samsung Book
+- Samsung Expert
+- Lenovo IdeaPad
+- Lenovo ThinkPad
+- Lenovo Legion
+- Asus VivoBook
+- Asus ZenBook
+- Asus TUF
+- HP Pavilion
+- HP EliteBook
+- HP ProBook
+- Positivo Motion
+- Positivo Master
+- Apple MacBook Air
+- Apple MacBook Pro
+etc.
+
+IMPORTANTE:
+- Permitir pesquisar e selecionar rapidamente marca e modelo
+- Permitir editar manualmente caso o modelo não exista
+- Permitir adicionar novos modelos no sistema
+
+5. REPAROS PADRÃO PRÉ-CADASTRADOS
+Ao abrir orçamento e OS, quero uma lista de reparos/serviços padrão já cadastrados, com valor editável.
+
+Cadastrar inicialmente:
+- Troca de tela
+- Troca de teclado
+- Troca de bateria
+- Troca de dobradiça
+- Troca de carcaça
+- Upgrade de SSD
+- Upgrade de RAM
+- Limpeza interna
+- Troca de pasta térmica
+- Formatação
+- Instalação de sistema operacional
+- Instalação de drivers
+- Backup de dados
+- Reparo de placa
+- Troca de conector DC Jack
+- Reinstalação de sistema
+- Remoção de vírus
+- Recuperação de sistema
+- Configuração de notebook
+- Configuração de desktop
+- Higienização completa
+- Revisão técnica
+- Diagnóstico técnico
+
+IMPORTANTE:
+- Todos os serviços devem ter valor editável
+- Deve ser possível selecionar um ou mais serviços rapidamente
+- Deve ser possível editar descrição e valor antes de salvar
+- Deve ser possível cadastrar novos serviços padrão nas configurações
+
+6. DESTAQUE DAS FORMAS DE PAGAMENTO
+Tanto no ORÇAMENTO quanto na ORDEM DE SERVIÇO, destacar claramente:
+- Valor total
+- Valor à vista
+- Valor no Pix
+- Valor parcelado
+- Quantidade de parcelas
+- Valor de cada parcela
+- Forma de pagamento
+
+Essas informações devem ficar visualmente destacadas no layout para facilitar aprovação do cliente.
+
+7. IMPRESSÃO E EXPORTAÇÃO
+Padronizar corretamente o layout para folha A4.
+O tamanho atual está errado e precisa ser corrigido.
+
+Requisitos:
+- ORÇAMENTO em A4 corretamente dimensionado
+- ORDEM DE SERVIÇO em A4 corretamente dimensionada
+- Layout centralizado e proporcional
+- Boa margem de impressão
+- Visual limpo e profissional
+- PDF fiel ao layout
+- PNG fiel ao layout
+- Logo aparecendo corretamente
+- Sem cortes ou elementos desproporcionais
+
+8. CABEÇALHO EDITÁVEL
+Manter o cabeçalho totalmente editável nas configurações, com:
+- Logo
+- Nome da empresa
+- Texto adicional
+- Endereço
+- CNPJ
+- Telefone
+- WhatsApp
+- E-mail
+- Prefixo do número da OS
+- Prefixo do número do orçamento
+
+9. FLUXO RÁPIDO
+Quero algo muito rápido para gerar:
+- Orçamento
+- Aprovação
+- Conversão para OS
+
+O sistema deve priorizar:
+- poucos cliques
+- preenchimento rápido
+- clareza
+- simplicidade
+- aparência profissional
+
+10. CONTROLE DE ACESSO
+Quero deixar apenas dois usuários liberados no sistema.
+
+Criar e/ou manter apenas estes acessos:
+- Usuário: VITORDRT
+  Senha: Felicidade@00
+
+- Usuário: DIEGODRT
+  Senha: Felicidade@00
+
+Regras:
+- apenas esses dois usuários podem acessar
+- remover ou bloquear outros usuários existentes
+- ambos com permissão total de administrador
+- login funcionando normalmente
+
+11. CONFIGURAÇÕES ADMINISTRÁVEIS
+Criar áreas nas configurações para gerenciar:
+- Cabeçalho da empresa
+- Serviços padrão
+- Marcas
+- Modelos
+- Formas de pagamento
+- Parcelamentos padrão
+- Termos e garantia
+- Usuários permitidos
+
+12. TERMOS E GARANTIA
+Manter termos curtos, claros e profissionais.
+Nada muito extenso.
+Foco em resguardar a empresa de forma objetiva.
+
+13. RESULTADO ESPERADO
+Quero o sistema atualizado com:
+- orçamento simplificado
+- OS simplificada
+- layout A4 correto
+- exportação PDF e PNG correta
+- marcas e modelos pré-cadastrados
+- serviços padrão pré-cadastrados
+- valores editáveis
+- destaque das formas de pagamento
+- somente dois usuários ativos
+- fluxo rápido e profissional
+
+IMPORTANTE:
+Não complique a interface.
+Não polua com informações desnecessárias.
+Quero um sistema bonito, direto, comercial, profissional e muito rápido de usar no balcão.
+O foco da assistência é somente notebook e desktop.
+Remova qualquer referência a impressora e outros equipamentos fora do meu foco.
+Minha assistência trabalha somente com notebook e desktop.
+Quero que todo o sistema, filtros, marcas, modelos, serviços e layout sejam pensados para esse nicho.
+No campo “tipo de equipamento”, deixar apenas:
+- Notebook
+- Desktop
