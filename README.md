@@ -30,8 +30,7 @@ Em breve imagens do sistema em funcionamento.
 
 
 👨‍💻 Desenvolvido por
-Vitor Soares 
-Diego Sanches
+DRT INFORMÁTICA (Diego Sanches & Vitor Soares)
 
 🏢 DRT Informática  
 Especialistas em soluções para empresas
