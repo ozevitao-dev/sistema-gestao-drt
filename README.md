@@ -1,5 +1,12 @@
 <p align="center">
-  <img src="public/logo.png" width="200"/>
+  <img src="https://raw.githubusercontent.com/ozevitao-dev/sistema-gestao-drt/main/public/logo.png" width="160"/>
+</p>
+
+<h1 align="center">Sistema de Gestão DRT</h1>
+
+<p align="center">
+  🚀 Soluções inteligentes para assistência técnica<br/>
+  Desenvolvido por <b>DRT Informática</b>
 </p>
 
 # 🚀 Sistema de Gestão DRT
