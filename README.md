@@ -5,13 +5,10 @@
 <h1 align="center">Sistema de Gestão DRT</h1>
 
 <p align="center">
-  🚀 Soluções inteligentes para assistência técnica<br/>
-  Desenvolvido por <b>DRT Informática</b>
+  🚀 Sistema desenvolvido para organização de assistência técnica.
+ <b>DRT Informática</b>
 </p>
 
-# 🚀 Sistema de Gestão DRT
-
-Sistema desenvolvido para organização de assistência técnica.
 
 ## 🔧 Funcionalidades
 - Controle de Ordens de Serviço
