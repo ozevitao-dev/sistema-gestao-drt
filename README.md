@@ -19,3 +19,13 @@ Organizar processos e aumentar a produtividade no atendimento técnico.
 ## 📸 Preview do Sistema
 
 Em breve imagens do sistema em funcionamento.
+
+
+👨‍💻 Desenvolvido por
+Vitor Soares 
+Diego Sanches
+
+🏢 DRT Informática  
+Especialistas em soluções para empresas
+
+📍 São Paulo - SP
