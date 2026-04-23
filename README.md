@@ -1,12 +1,5 @@
 <p align="center">
-  <img src="./public/logo.png" width="180"/>
-</p>
-
-<h1 align="center">Sistema de Gestão DRT</h1>
-
-<p align="center">
-Desenvolvido por <b>DRT Informática</b><br/>
-Soluções inteligentes para empresas
+  <img src="public/logo.png" width="200"/>
 </p>
 
 # 🚀 Sistema de Gestão DRT
